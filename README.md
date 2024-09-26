@@ -67,7 +67,7 @@ If you use the PARROT framework in your research, please cite us:
   author={Anonymous},
   journal={COLING 2025},
   year={2025},
-  note={https://github.com/yourusername/parrot-framework}
+  note={https://github.com/HarshaLLM/parrot-framework}
 }
 ```
 
