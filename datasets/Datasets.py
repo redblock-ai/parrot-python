@@ -18,7 +18,7 @@ class Datasets():
 
     Methods
     -------
-    get_data()
+    get_data_frame()
         Loads the data from the specified file and returns it as a Pandas.DataFrame.
     
     Example
@@ -48,13 +48,13 @@ class Datasets():
             self.__cwd = os.getcwd() #get the current working directory.
             
             self.__file__ = self.__cwd +"/datasets/"+ dataset + ".csv"
-            logging.info(f"[Datasets] Loading dataset {self.__file__}")
+            logging.info(f"[Datasets] Loading dataset: {dataset}")
             self.__data = pd.read_csv(self.__file__)
             logging.info(f"[Datasets] Dataset loaded successfully")
         except FileNotFoundError as e:
             logging.exception(e)
 
-    def get_dataframe(self) -> pd.DataFrame:
+    def get_data_frame(self) -> pd.DataFrame:
         """
         This method returns the dataset loaded into memory.
         """
