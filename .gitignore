@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Must ignore debugging notebook file.
+test.ipynb
+
 # Must ignore keys as well
 key.json
 .DS_Store
