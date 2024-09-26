@@ -3,6 +3,7 @@ Data Access Object: PARROT.datasets.Datasets() is responsible for fetching the r
 """
 import pandas as pd
 import logging
+import os
 class Datasets():
     """
     A class that serves as a Data Access Object is responsible for fetching the raw data and returning it in a structured form, typically as a Pandas.DataFrame.
@@ -31,22 +32,30 @@ class Datasets():
     
     __file__: str
     __data: pd.DataFrame 
+    __cwd: str
 
     def __init__(self, dataset: str) -> None:
         """
         Accepts the filepath
         """
         try:
-            self.__file__ = dataset
-            self.__data = pd.read_csv(dataset)
-
-            
-            logging.basicConfig( #setting up logging.
-                filename=None
+            logging.basicConfig( 
+                filename=None,
                 level=logging.INFO,          
                 format='%(asctime)s - %(levelname)s - %(message)s',  #our custom log format
                 datefmt='%Y-%m-%d %H:%M:%S'
             )
-            logging.info(f"Initialized DataLoader for file: {self.file_path}")
+            self.__cwd = os.getcwd() #get the current working directory.
+            
+            self.__file__ = self.__cwd +"/datasets/"+ dataset + ".csv"
+            logging.info(f"[Datasets] Loading dataset {self.__file__}")
+            self.__data = pd.read_csv(self.__file__)
+            logging.info(f"[Datasets] Dataset loaded successfully")
         except FileNotFoundError as e:
-            pass
+            logging.exception(e)
+
+    def get_dataframe(self) -> pd.DataFrame:
+        """
+        This method returns the dataset loaded into memory.
+        """
+        return self.__data
