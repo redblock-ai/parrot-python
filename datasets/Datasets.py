@@ -48,9 +48,9 @@ class Datasets():
             self.__cwd = os.getcwd() #get the current working directory.
             
             self.__file__ = self.__cwd +"/datasets/"+ dataset + ".csv"
-            logging.info(f"[Datasets] Loading dataset: {dataset}")
+            logging.info(f"[Datasets] Loading dataset: {dataset}.")
             self.__data = pd.read_csv(self.__file__)
-            logging.info(f"[Datasets] Dataset loaded successfully")
+            logging.info(f"[Datasets] Dataset loaded successfully.")
         except FileNotFoundError as e:
             logging.exception(e)
 
