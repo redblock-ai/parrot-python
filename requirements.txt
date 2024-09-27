@@ -1,0 +1,4 @@
+pytest
+langchain
+langchain_ollama
+pandas
