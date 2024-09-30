@@ -12,13 +12,7 @@ class OllamaAdapter:
     """
     A custom-class, that servers as a adapter for model inference over PARROT-datasets using Ollama.
     """
-    __data: pd.DataFrame = None
-    __prompt: str = None
-    __model: OllamaLLM = None
-    __prompt: ChatPromptTemplate = None
-    __chain: object = None
-
-
+    
     def __init__(self, 
     data_frame:pd.DataFrame = None,
     model_name: str = None,
