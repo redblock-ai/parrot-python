@@ -32,7 +32,7 @@ class Datasets():
     
     def __init__(self, dataset: str, sample_size: int = None) -> None:
         """
-        Accepts the filepath
+        Initializes the dataframe for the requested dataset.
         """
         try:
             logging.basicConfig( 

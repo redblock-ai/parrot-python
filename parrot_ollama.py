@@ -5,8 +5,9 @@ A class that servers as a Ollama adapter for model inference over PARROT-dataset
 import pandas as pd
 import logging
 from langchain_core.prompts import ChatPromptTemplate
+from pydantic import BaseModel
+import subprocess
 from langchain_ollama.llms import OllamaLLM
-from langchain.chains import LLMChain
 
 class OllamaAdapter:
     """
@@ -56,6 +57,11 @@ class OllamaAdapter:
 
             logging.info("[OllamaAdapter] Building a chain for inference...")
             self.__chain = self.__prompt | self.__model
+            logging.warning("[OllamaAdapter] Checking if requested LLM is available on Ollama locally...")
+            try:
+                self.__chain.invoke({"question": "how are you?"}) #testing to check if the chain is functional. This should not raise an exception.
+            except:
+                raise Exception(f"Model not found, download it using the CLI command 'ollama run <model-name>'")
             logging.info("[OllamaAdapter] Chain built successfully.")
             logging.info(f"[OllamaAdapter] {model_name} is ready for benchmarking!")
         except Exception as e:

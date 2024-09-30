@@ -1,4 +1,4 @@
 pytest
 langchain
-langchain_ollama
+langchain_community
 pandas
