@@ -30,10 +30,6 @@ class Datasets():
     \>>> print(df.head())
     """
     
-    __file__: str
-    __data: pd.DataFrame 
-    __cwd: str
-
     def __init__(self, dataset: str) -> None:
         """
         Accepts the filepath
