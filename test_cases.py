@@ -8,6 +8,18 @@ import pandas as pd
 from datasets.datasets import Datasets
 from parrot_ollama import OllamaAdapter
 
+#Datasets TESTCASES:
+@pytest.mark.DatasetsSampleSizeSuccess
+def test_Datasets_sample_size_success():
+    """
+    Test if the Datasets object is able to return a data_frame with size n.
+    """
+    sample = 50
+    obj = Datasets(dataset = "millionaire", sample_size=sample)
+    data = obj.get_data_frame()
+
+    assert len(data) == sample
+
 #OllamaAdapter TESTCASES:
 @pytest.mark.OllamaAdapterInitSuccess
 def test_OllamaAdapter_initialization_success():
