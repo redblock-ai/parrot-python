@@ -32,6 +32,18 @@ def test_Datasets_sample_size_failure():
 
         assert data is None
 
+@pytest.mark.DatasetsSampleSizeNotProvidedSuccess
+def test_Datasets_sample_size_not_provided_success():
+    """
+    Test if the Datatsets object is returning the entire dataset without expecting a sample_size param.
+    """
+    obj = Datasets(dataset = "millionaire")
+    data = obj.get_data_frame()
+    assert data is not None
+    assert len(data.columns) != 0
+    assert len(data) !=0
+
+
 #OllamaAdapter TESTCASES:
 @pytest.mark.OllamaAdapterInitSuccess
 def test_OllamaAdapter_initialization_success():
