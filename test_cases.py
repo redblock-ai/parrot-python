@@ -5,7 +5,7 @@ using CLI run the script: <pytest -v --disable-warnings test_cases.py>
 
 import pytest
 import pandas as pd
-from datasets.Datasets import Datasets
+from datasets.datasets import Datasets
 from parrot_ollama import OllamaAdapter
 
 #OllamaAdapter TESTCASES:
