@@ -20,6 +20,18 @@ def test_Datasets_sample_size_success():
 
     assert len(data) == sample
 
+@pytest.mark.DatasetsSampleSizeFailure
+def test_Datasets_sample_size_failure():
+    """
+    Test if the Datasets object is raising an exception when an invalid sample size is provided.
+    """
+    with pytest.raises(ValueError):
+        sample = -1203
+        obj = Datasets(dataset = "millionaire", sample_size=sample)
+        data = obj.get_data_frame()
+
+        assert data is None
+
 #OllamaAdapter TESTCASES:
 @pytest.mark.OllamaAdapterInitSuccess
 def test_OllamaAdapter_initialization_success():
