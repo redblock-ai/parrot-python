@@ -30,7 +30,7 @@ class Datasets():
     \>>> print(df.head())
     """
     
-    def __init__(self, dataset: str) -> None:
+    def __init__(self, dataset: str, sample_size: int = None) -> None:
         """
         Accepts the filepath
         """
@@ -44,8 +44,13 @@ class Datasets():
             self.__cwd = os.getcwd() #get the current working directory.
             
             self.__file__ = self.__cwd +"/datasets/"+ dataset + ".csv"
-            logging.info(f"[Datasets] Loading dataset: {dataset}.")
-            self.__data = pd.read_csv(self.__file__)
+            if sample_size is not None:
+                logging.info(f"[Datasets] Loading dataset with sample_size: {sample_size}.")
+                self.__data = pd.read_csv(self.__file__)
+                self.__data = self.__data.sample(sample_size)
+            else:
+                logging.info(f"[Datasets] Loading dataset: {dataset}.")
+                self.__data = pd.read_csv(self.__file__)
             logging.info(f"[Datasets] Dataset loaded successfully.")
         except FileNotFoundError as e:
             logging.exception(e)
