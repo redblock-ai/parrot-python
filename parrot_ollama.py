@@ -7,6 +7,7 @@ import logging
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel
 import subprocess
+from datasets.datasets import Datasets
 from langchain_ollama.llms import OllamaLLM
 
 class OllamaAdapter:
@@ -15,7 +16,7 @@ class OllamaAdapter:
     """
     
     def __init__(self, 
-    data_frame:pd.DataFrame = None,
+    dataset:Datasets = None,
     model_name: str = None,
     prompt: str = None,
     temperature: float = 0,
@@ -31,7 +32,8 @@ class OllamaAdapter:
                 format='%(asctime)s - %(levelname)s - %(message)s',  #our custom log format
                 datefmt='%Y-%m-%d %H:%M:%S'
             )
-            
+            self.__dataset_handler = dataset #the dataset object is now used to handle that particular instance.
+            data_frame = self.__dataset_handler.get_data_frame()
             #perform parameter checks.
             if data_frame is None or not isinstance(data_frame, pd.DataFrame):
                 raise Exception("[OllamaAdapter] - Invalid parameter 'data_frame' passed for inference.")
@@ -69,15 +71,15 @@ class OllamaAdapter:
             raise e
 
 
-    def get_answer(self, question:str) -> str:
+    def get_answer(self, inputs:dict) -> str:
         """
-        Helper method, which accepts a string/user query and returns the response received from the LLM.
+        Helper method, which accepts a dictionary of inputs to the LLM as query and returns the response received from the LLM.
         """
         try:
-            response = self.__chain.invoke({"question": question})
+            response = self.__chain.invoke(inputs)
             return response
         except Exception as e:
-            logging.error(f"\r[OllamaAdapter] Failed to answer the question: {question}, due to error: {str(e)}")
+            logging.error(f"\r[OllamaAdapter] LLM failed to process inputs: {inputs}, due to error: {str(e)}")
 
     
     def process_questions(self, data_frame: pd.DataFrame) -> list:
