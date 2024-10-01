@@ -57,7 +57,7 @@ class OllamaAdapter:
 
             logging.info("[OllamaAdapter] Building a chain for inference...")
             self.__chain = self.__prompt | self.__model
-            logging.warning("[OllamaAdapter] Checking if requested LLM is available on Ollama locally...")
+            logging.debug("[OllamaAdapter] Checking if requested LLM is available on Ollama locally...")
             try:
                 self.__chain.invoke({"question": "how are you?"}) #testing to check if the chain is functional. This should not raise an exception.
             except:
@@ -67,3 +67,47 @@ class OllamaAdapter:
         except Exception as e:
             logging.exception(e)
             raise e
+
+
+    def get_answer(self, question:str) -> str:
+        """
+        Helper method, which accepts a string/user query and returns the response received from the LLM.
+        """
+        try:
+            response = self.__chain.invoke({"question": question})
+            return response
+        except Exception as e:
+            logging.error(f"\r[OllamaAdapter] Failed to answer the question: {question}, due to error: {str(e)}")
+
+    
+    def process_questions(self, data_frame: pd.DataFrame) -> list:
+            """
+            Helper Method, which accepts the dataframe and returns the list of candidate answers.
+            """
+            try:
+                logging.info("[OllamaAdapter] Generating candidate answers for the WWTBAM dataset...")
+                answers = list()
+                total_samples = len(data_frame)
+
+                if total_samples<100:
+                    raise Exception("[OllamaAdapter] Insufficient sample size! Please make sure you provide 100+ samples..")
+                progress_interval = total_samples // 100  
+
+                for i, row in enumerate(data_frame.iterrows(), start=1):
+                    
+                    question = row[1]['question']
+                    answer = self.get_answer(question)
+                    if i == 1:
+                        logging.info("[OllamaAdapter] Here's a sample output: %s"%(answer))
+                    answers.append(answer)
+
+
+                    if i % progress_interval == 0 or i == total_samples:
+                        progress_percent = (i / total_samples) * 100
+                        logging.info(f"\r[OllamaAdapter] Progress: {progress_percent:.0f}% ({i}/{total_samples})")
+
+                logging.info("[OllamaAdapter] Inference is now complete.")
+                return answers
+                
+            except Exception as e:
+                logging.error("[ERR] The following error occured while trying to answer the questions: "+str(e))

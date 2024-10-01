@@ -41,9 +41,10 @@ class Datasets():
                 format='%(asctime)s - %(levelname)s - %(message)s',  #our custom log format
                 datefmt='%Y-%m-%d %H:%M:%S'
             )
+            self.current_dataset = dataset
             self.__cwd = os.getcwd() #get the current working directory.
             
-            self.__file__ = self.__cwd +"/datasets/"+ dataset + ".csv"
+            self.__file__ = self.__cwd +"/datasets/"+ self.current_dataset + ".csv"
             if sample_size is not None:
                 logging.info(f"[Datasets] Loading dataset with sample_size: {sample_size}.")
                 self.__data = pd.read_csv(self.__file__)
