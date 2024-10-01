@@ -20,6 +20,11 @@ class Datasets():
     -------
     get_data_frame()
         Loads the data from the specified file and returns it as a Pandas.DataFrame.
+
+    Raises
+    ------
+    FileNotFoundError
+        Raises this exception, if the requested dataset is nonexistant on disk.
     
     Example
     -------
@@ -44,14 +49,14 @@ class Datasets():
             self.current_dataset = dataset
             self.__cwd = os.getcwd() #get the current working directory.
             
-            self.__file__ = self.__cwd +"/datasets/"+ self.current_dataset + ".csv"
+            self.__FILE__ = self.__cwd +"/datasets/"+ self.current_dataset + ".csv"
             if sample_size is not None:
                 logging.info(f"[Datasets] Loading dataset with sample_size: {sample_size}.")
-                self.__data = pd.read_csv(self.__file__)
+                self.__data = pd.read_csv(self.__FILE__)
                 self.__data = self.__data.sample(sample_size)
             else:
                 logging.info(f"[Datasets] Loading dataset: {dataset}.")
-                self.__data = pd.read_csv(self.__file__)
+                self.__data = pd.read_csv(self.__FILE__)
             logging.info(f"[Datasets] Dataset loaded successfully.")
         except FileNotFoundError as e:
             logging.exception(e)
