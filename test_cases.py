@@ -4,7 +4,6 @@ using CLI run the script: <pytest -v --disable-warnings test_cases.py>
 """
 
 import pytest
-import pandas as pd
 from datasets.datasets import Datasets
 from parrot_ollama import OllamaAdapter
 
@@ -50,12 +49,11 @@ def test_OllamaAdapter_initialization_success():
     Test successful initialization of OllamaAdapter
     """
     obj = Datasets(dataset = "millionaire")
-    data = obj.get_data_frame()
     model_name = "phi3.5"
     prompt = """Answer following question in directly without any additional text, Question: {question}"""
     
     adapter = OllamaAdapter(
-        data_frame=data, 
+        dataset=obj, 
         model_name=model_name, 
         prompt=prompt
     )
@@ -87,7 +85,6 @@ def test_OllamaAdapter_initialization_failure_invalid_model():
     Test that OllamaAdapter raises an Exception when the requested model isn't available.
     """
     obj = Datasets(dataset = "millionaire")
-    data = obj.get_data_frame()
     model_name = "ph"
     prompt = """Answer following question in directly without any additional text, Question: {question}"""
     
@@ -96,10 +93,51 @@ def test_OllamaAdapter_initialization_failure_invalid_model():
     with pytest.raises(Exception):
         
         OllamaAdapter(
-                data_frame=data,  
+                dataset=obj,  
                 model_name=model_name, #Model isn't available locally.
                 prompt=prompt
             )
         
+@pytest.mark.OllamaAdapterMillionaireTestSuccess
+def test_OllamaAdapter_Millionaire_Test_Success():
+    """
+    Test if OllamaAdapter is able to generate candidate answers for Millionaire set.
+    """
+    sample_size = 100
+    dataset = Datasets(dataset= "millionaire", sample_size=sample_size)
+    model_name = "phi3"
+    prompt = """Answer following question in directly without any additional text, Question: {question}"""
+    ollama_handler = OllamaAdapter(
+            dataset = dataset,  
+            model_name=model_name, #Model isn't available locally.
+            prompt=prompt
+        )
 
+    answers = ollama_handler.process_questions()
+
+    assert answers is not None #response must not be None.
+    assert isinstance(answers, list) #check if response is list of answers.
+    assert len(dataset.get_data_frame()) == len(answers) #No empty responses.
+
+@pytest.mark.OllamaAdapterJeopardyTestSuccess
+def test_OllamaAdapter_Jeopardy_Test_Success():
+    """
+    Test if OllamaAdapter is able to generate candidate answers for Jeopardy set.
+    """
+    sample_size = 100
+    dataset = Datasets(dataset= "jeopardy", sample_size=sample_size)
+    model_name = "phi3"
+    prompt = """Answer following question in directly without any additional text, Question: {question}"""
+    ollama_handler = OllamaAdapter(
+            dataset = dataset,  
+            model_name=model_name, #Model isn't available locally.
+            prompt=prompt
+        )
+
+    answers = ollama_handler.process_questions()
+
+    assert answers is not None #response must not be None.
+    assert isinstance(answers, list) #check if response is list of answers.
+    assert len(dataset.get_data_frame()) == len(answers) #No empty responses.
+        
     

@@ -82,33 +82,51 @@ class OllamaAdapter:
             logging.error(f"\r[OllamaAdapter] LLM failed to process inputs: {inputs}, due to error: {str(e)}")
 
     
-    def process_questions(self, data_frame: pd.DataFrame) -> list:
+    def process_questions(self) -> list:
             """
             Helper Method, which accepts the dataframe and returns the list of candidate answers.
             """
             try:
                 logging.info("[OllamaAdapter] Generating candidate answers for the WWTBAM dataset...")
                 answers = list()
+                data_frame = self.__dataset_handler.get_data_frame()
                 total_samples = len(data_frame)
-
+                inputs = dict()
                 if total_samples<100:
                     raise Exception("[OllamaAdapter] Insufficient sample size! Please make sure you provide 100+ samples..")
                 progress_interval = total_samples // 100  
 
-                for i, row in enumerate(data_frame.iterrows(), start=1):
+                logging.info(f"[OllamaAdapter] Starting inference for {self.__dataset_handler.current_dataset} dataset...")
+                if self.__dataset_handler.current_dataset == "millionaire":
                     
-                    question = row[1]['question']
-                    answer = self.get_answer(question)
-                    if i == 1:
-                        logging.info("[OllamaAdapter] Here's a sample output: %s"%(answer))
-                    answers.append(answer)
+                    for i, row in enumerate(data_frame.iterrows(), start=1):
+                        inputs.clear() #clear the inputs.
+                        inputs['question'] = row[1]['question']
+                        answer = self.get_answer(inputs = inputs)
+                        if i == 1:
+                            logging.info("[OllamaAdapter] Here's a sample output: %s"%(answer))
+                        answers.append(answer)
 
 
-                    if i % progress_interval == 0 or i == total_samples:
-                        progress_percent = (i / total_samples) * 100
-                        logging.info(f"\r[OllamaAdapter] Progress: {progress_percent:.0f}% ({i}/{total_samples})")
+                        if i % progress_interval == 0 or i == total_samples:
+                            progress_percent = (i / total_samples) * 100
+                            logging.info(f"\r[OllamaAdapter] Progress: {progress_percent:.0f}% ({i}/{total_samples})")
 
-                logging.info("[OllamaAdapter] Inference is now complete.")
+                    logging.info("[OllamaAdapter] Inference is now complete.")
+                elif self.__dataset_handler.current_dataset == "jeopardy":
+                    for i, row in enumerate(data_frame.iterrows(), start=1):
+                        inputs.clear()
+                        inputs['question'] = row[1]['question']
+                        inputs['category'] = row[1]['category']
+                        answer = self.get_answer(inputs= inputs)
+                        if i == 1:
+                            logging.info("[OllamaAdapter] Here's a sample output: %s"%(answer))
+                        answers.append(answer)
+
+
+                        if i % progress_interval == 0 or i == total_samples:
+                            progress_percent = (i / total_samples) * 100
+                            logging.info(f"\r[OllamaAdapter] Progress: {progress_percent:.0f}% ({i}/{total_samples})")
                 return answers
                 
             except Exception as e:
