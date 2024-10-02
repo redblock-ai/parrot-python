@@ -138,8 +138,9 @@ class OllamaAdapter:
             logging.debug("[OllamaAdapter] Checking if requested LLM is available on Ollama locally...")
             try:
                 self.__chain.invoke({"question": "how are you?"}) #testing to check if the chain is functional. This should not raise an exception.
-            except:
-                raise Exception(f"Model not found, download it using the CLI command 'ollama run <model-name>'")
+            except Exception as e:
+                logging.error(exc_info=str(e))
+                raise e
             logging.info("[OllamaAdapter] Chain built successfully.")
             logging.info(f"[OllamaAdapter] {model_name} is ready for benchmarking!")
         except Exception as e:
