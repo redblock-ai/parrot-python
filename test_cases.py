@@ -10,7 +10,7 @@ from parrot_ollama import OllamaAdapter
 
 #Datasets TESTCASES:
 @pytest.mark.DatasetsSampleSizeSuccess
-def test_Datasets_sample_size_success():
+def test_datasets_sample_size_success():
     """
     Test if the Datasets object is able to return a data_frame with size n.
     """
@@ -21,7 +21,7 @@ def test_Datasets_sample_size_success():
     assert len(data) == sample
 
 @pytest.mark.DatasetsSampleSizeFailure
-def test_Datasets_sample_size_failure():
+def test_datasets_sample_size_failure():
     """
     Test if the Datasets object is raising an exception when an invalid sample size is provided.
     """
@@ -32,7 +32,7 @@ def test_Datasets_sample_size_failure():
         assert data is None #data should be None.
 
 @pytest.mark.DatasetsSampleSizeFailure
-def test_Datasets_sample_size_not_provided_success():
+def test_datasets_sample_size_not_provided_success():
     """
     Test if the Datatsets object is returning the entire dataset without expecting a sample_size param.
     """
@@ -44,7 +44,7 @@ def test_Datasets_sample_size_not_provided_success():
 
 #OllamaAdapter TESTCASES:
 @pytest.mark.OllamaAdapterInitSuccess
-def test_OllamaAdapter_initialization_success():
+def test_ollama_adapter_initialization_success():
     """
     Test successful initialization of OllamaAdapter
     """
@@ -64,7 +64,7 @@ def test_OllamaAdapter_initialization_success():
     assert adapter._OllamaAdapter__chain is not None
 
 @pytest.mark.OllamaAdapterInitFailure
-def test_OllamaAdapter_initialization_failure_invalid_dataframe():
+def test_ollama_adapter_initialization_failure_invalid_dataframe():
     """
     Test that OllamaAdapter raises an Exception when an invalid or None data_frame is passed
     """
@@ -80,7 +80,7 @@ def test_OllamaAdapter_initialization_failure_invalid_dataframe():
         )
 
 @pytest.mark.OllamaAdapterInitFailure
-def test_OllamaAdapter_initialization_failure_invalid_model():
+def test_ollama_adapter_initialization_failure_invalid_model():
     """
     Test that OllamaAdapter raises an Exception when the requested model isn't available.
     """
@@ -99,7 +99,7 @@ def test_OllamaAdapter_initialization_failure_invalid_model():
             )
         
 @pytest.mark.OllamaAdapterMillionaireTestSuccess
-def test_OllamaAdapter_Millionaire_Test_Success():
+def test_ollama_adapter_millionaire_test_success():
     """
     Test if OllamaAdapter is able to generate candidate answers for Millionaire set.
     """
@@ -120,7 +120,7 @@ def test_OllamaAdapter_Millionaire_Test_Success():
     assert len(dataset.get_data_frame()) == len(answers) #No empty responses.
 
 @pytest.mark.OllamaAdapterJeopardyTestSuccess
-def test_OllamaAdapter_Jeopardy_Test_Success():
+def test_ollama_adapter_jeopardy_test_success():
     """
     Test if OllamaAdapter is able to generate candidate answers for Jeopardy set.
     """
