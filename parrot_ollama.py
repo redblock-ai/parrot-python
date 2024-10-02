@@ -10,6 +10,19 @@ import subprocess
 from datasets.datasets import Datasets
 from langchain_ollama.llms import OllamaLLM
 
+class OllamaAdapterExceptions(Exception):
+    """
+    InvalidDataset is raised, whenever there is an error in loading the appropriate dataset object.
+    """
+    pass
+
+class ExceptionGroup:
+    class InvalidDataset(OllamaAdapterExceptions):
+        """Exception raised for invalid dataset access object"""
+        def __init__(self, message="Invalid Dataset Object passed!"):
+            self.message = message
+            super().__init__(self.message)
+
 class OllamaAdapter:
     """
     A custom-class, that servers as a adapter for model inference over PARROT-datasets using Ollama.
@@ -33,10 +46,12 @@ class OllamaAdapter:
                 datefmt='%Y-%m-%d %H:%M:%S'
             )
             self.__dataset_handler = dataset #the dataset object is now used to handle that particular instance.
+            if not isinstance(self.__dataset_handler, Datasets) or self.__dataset_handler is None:
+                raise ExceptionGroup.InvalidDataset(message=f"Invalid Dataset Object passed of type: {type(self.__dataset_handler)}")
             data_frame = self.__dataset_handler.get_data_frame()
             #perform parameter checks.
             if data_frame is None or not isinstance(data_frame, pd.DataFrame):
-                raise Exception("[OllamaAdapter] - Invalid parameter 'data_frame' passed for inference.")
+                raise ExceptionGroup.InvalidDataset("[OllamaAdapter] - Invalid parameter 'data_frame' passed for inference.")
             self.__data = data_frame #init data
             logging.info("[OllamaAdapter] - Data initialized") 
             
