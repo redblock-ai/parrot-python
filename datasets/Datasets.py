@@ -6,38 +6,44 @@ import logging
 import os
 class Datasets():
     """
-    A class that serves as a Data Access Object is responsible for fetching the raw data and returning it in a structured form, typically as a Pandas.DataFrame.
-    
-    
-    A class used to load data from a file and return a pandas DataFrame.
+    A Data Access Object responsible for loading raw data from disk and returning it in a structured format as a Pandas.DataFrame. This class provides methods to handle datasets efficiently and supports sampling a subset of the data if needed.
 
     Attributes
     ----------
-    file_path : str
-        The path to the file from which data will be loaded.
+        current_dataset (str):
+            The name of the dataset to be loaded (without the file extension).
+
+        __cwd (str):
+            The current working directory where the datasets folder resides.
+
+        __FILE__ (str):
+            The full file path of the dataset CSV file, constructed using the current_dataset and working directory.
+
+        __data (pd.DataFrame):
+            The loaded dataset in memory, stored as a Pandas.DataFrame. This can either be the entire dataset or a random sample, based on the provided parameters.
 
     Methods
     -------
-    get_data_frame()
-        Loads the data from the specified file and returns it as a Pandas.DataFrame.
-
-    Raises
-    ------
-    FileNotFoundError
-        Raises this exception, if the requested dataset is nonexistant on disk.
-    
-    Example
-    -------
-    To use this class, you would initialize it with the file path and then call load_data:
-    
-    \>>> loader = Datasets("data.csv")
-    \>>> df = loader.load_data()
-    \>>> print(df.head())
+        get_data_frame()
+            Loads the data from the specified file and returns it as a Pandas.DataFrame.
     """
     
     def __init__(self, dataset: str, sample_size: int = None) -> None:
         """
-        Initializes the dataframe for the requested dataset.
+        Initializes the Datasets class by loading a dataset from the specified path. If a sample_size is provided, a random sample of that size is returned instead of the entire dataset.
+
+        Arguments:
+        ----------
+            dataset (str): The name of the dataset file (without the .csv extension) to be loaded.
+            sample_size (int, optional): The number of random samples to load from the dataset. If None, the entire dataset is loaded.
+        
+        Returns:
+        --------
+            None.
+
+        Raises:
+        -------
+            FileNotFoundError: Raised if the specified dataset file is not found in the expected location on disk.
         """
         try:
             logging.basicConfig( 
@@ -63,6 +69,18 @@ class Datasets():
 
     def get_data_frame(self) -> pd.DataFrame:
         """
-        This method returns the dataset loaded into memory.
+        Returns the dataset that has been loaded into memory as a Pandas.DataFrame. This method allows other classes or functions to access the data for further analysis or processing.
+
+        Arguments:
+        ---------
+            None.
+
+        Returns:
+        --------
+            pd.DataFrame: The dataset that was loaded, either the full dataset or a sample, depending on the initialization parameters.
+        
+        Raises:
+        -------
+            None.
         """
         return self.__data
