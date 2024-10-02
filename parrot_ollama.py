@@ -12,14 +12,45 @@ from langchain_ollama.llms import OllamaLLM
 
 class OllamaAdapterExceptions(Exception):
     """
-    InvalidDataset is raised, whenever there is an error in loading the appropriate dataset object.
+    Base class for Custom Exceptions within Ollama Adapter.
     """
     pass
 
 class ExceptionGroup:
     class InvalidDataset(OllamaAdapterExceptions):
         """Exception raised for invalid dataset access object"""
-        def __init__(self, message="Invalid Dataset Object passed!"):
+        def __init__(self, message="Invalid Dataset Object passed."):
+            self.message = message
+            super().__init__(self.message)
+    
+    class InvalidDataframe(OllamaAdapterExceptions):
+        """Exception raised for invalid dataframe"""
+        def __init__(self, message="Invalid Dataset Object passed."):
+            self.message = message
+            super().__init__(self.message)
+
+    class ModelNameCannotBeNone(OllamaAdapterExceptions):
+        def __init__(self, message="Invalid model passed for inference."):
+            self.message = message
+            super().__init__(self.message)
+    
+    class ModelNameCannotBeEmpty(OllamaAdapterExceptions):
+        def __init__(self, message="Paramter 'model_name' cannot be empty."):
+            self.message = message
+            super().__init__(self.message)
+
+    class PromptCannotBeNone(OllamaAdapterExceptions):
+        def __init__(self, message="Paramter 'prompt' passed cannot be of type None."):
+            self.message = message
+            super().__init__(self.message)
+    
+    class PromptCannotBeEmpty(OllamaAdapterExceptions):
+        def __init__(self, message="Paramter 'prompt' cannot be empty."):
+            self.message = message
+            super().__init__(self.message)
+
+    class InsufficientBatchSize(OllamaAdapterExceptions):
+        def __init__(self, message="Paramter 'prompt' cannot be empty."):
             self.message = message
             super().__init__(self.message)
 
@@ -45,19 +76,23 @@ class OllamaAdapter:
                 format='%(asctime)s - %(levelname)s - %(message)s',  #our custom log format
                 datefmt='%Y-%m-%d %H:%M:%S'
             )
+
             self.__dataset_handler = dataset #the dataset object is now used to handle that particular instance.
             if not isinstance(self.__dataset_handler, Datasets) or self.__dataset_handler is None:
                 raise ExceptionGroup.InvalidDataset(message=f"Invalid Dataset Object passed of type: {type(self.__dataset_handler)}")
             data_frame = self.__dataset_handler.get_data_frame()
+
             #perform parameter checks.
             if data_frame is None or not isinstance(data_frame, pd.DataFrame):
-                raise ExceptionGroup.InvalidDataset("[OllamaAdapter] - Invalid parameter 'data_frame' passed for inference.")
+                raise ExceptionGroup.InvalidDataframe("[OllamaAdapter] - Invalid parameter 'data_frame' passed for inference.")
             self.__data = data_frame #init data
             logging.info("[OllamaAdapter] - Data initialized") 
             
-            
-            if model_name is None or model_name.strip() == "":
-                raise Exception("[OllamaAdapter] - Invalid parameter: 'model_name' passed for inference.")
+            #perform checks for parameter 'model_name'
+            if model_name is None:
+                raise ExceptionGroup.ModelNameCannotBeNone(message=f"The model name {model_name}, cannot be of type None.")
+            elif model_name.strip() == "":
+                raise ExceptionGroup.ModelNameCannotBeEmpty()
             
             self.__model = OllamaLLM( model=model_name, 
                 temperature=temperature, 
@@ -65,9 +100,12 @@ class OllamaAdapter:
                 top_p=top_n)
             logging.info(f"[OllamaAdapter] New instance created for {model_name}.")
             
-            if prompt is None or prompt.strip() == "":
-                raise Exception("[OllamaAdapter] Prompt cannot be empty!")
-
+            #perform checks for paramter 'prompt'
+            if prompt is None:
+                raise ExceptionGroup.PromptCannotBeNone()
+            elif prompt.strip() == "":
+                raise ExceptionGroup.PromptCannotBeEmpty()
+                
             logging.info("[OllamaAdapter] Building promp_template object for the user prompt provided.")
             self.__prompt = ChatPromptTemplate.from_template(prompt)
             logging.info("[OllamaAdapter] PromptTemplate object initialized successfully.")
@@ -108,7 +146,7 @@ class OllamaAdapter:
                 total_samples = len(data_frame)
                 inputs = dict()
                 if total_samples<100:
-                    raise Exception("[OllamaAdapter] Insufficient sample size! Please make sure you provide 100+ samples..")
+                    raise ExceptionGroup.InsufficientBatchSize("[OllamaAdapter] Insufficient sample size! Please make sure you provide 100+ samples..")
                 progress_interval = total_samples // 100  
 
                 logging.info(f"[OllamaAdapter] Starting inference for {self.__dataset_handler.current_dataset} dataset...")
