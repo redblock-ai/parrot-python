@@ -10,46 +10,46 @@ import subprocess
 from datasets.datasets import Datasets
 from langchain_ollama.llms import OllamaLLM
 
-class OllamaAdapterExcepti(Exception):
+class OllamaAdapterException(Exception):
     """
     Base class for Custom Exceptions within Ollama Adapter.
     """
     pass
 
 class ExceptionGroup:
-    class InvalidDataset(OllamaAdapterExcepti):
+    class InvalidDataset(OllamaAdapterException):
         """Exception raised for invalid dataset access object"""
         def __init__(self, message="Invalid Dataset Object passed."):
             self.message = message
             super().__init__(self.message)
     
-    class InvalidDataframe(OllamaAdapterExcepti):
+    class InvalidDataframe(OllamaAdapterException):
         """Exception raised for invalid dataframe"""
         def __init__(self, message="Invalid Dataset Object passed."):
             self.message = message
             super().__init__(self.message)
 
-    class ModelNameCannotBeNone(OllamaAdapterExcepti):
+    class ModelNameCannotBeNone(OllamaAdapterException):
         def __init__(self, message="Invalid model passed for inference."):
             self.message = message
             super().__init__(self.message)
     
-    class ModelNameCannotBeEmpty(OllamaAdapterExcepti):
+    class ModelNameCannotBeEmpty(OllamaAdapterException):
         def __init__(self, message="Paramter 'model_name' cannot be empty."):
             self.message = message
             super().__init__(self.message)
 
-    class PromptCannotBeNone(OllamaAdapterExcepti):
+    class PromptCannotBeNone(OllamaAdapterException):
         def __init__(self, message="Paramter 'prompt' passed cannot be of type None."):
             self.message = message
             super().__init__(self.message)
     
-    class PromptCannotBeEmpty(OllamaAdapterExcepti):
+    class PromptCannotBeEmpty(OllamaAdapterException):
         def __init__(self, message="Paramter 'prompt' cannot be empty."):
             self.message = message
             super().__init__(self.message)
 
-    class InsufficientBatchSize(OllamaAdapterExcepti):
+    class InsufficientBatchSize(OllamaAdapterException):
         def __init__(self, message="Paramter 'prompt' cannot be empty."):
             self.message = message
             super().__init__(self.message)

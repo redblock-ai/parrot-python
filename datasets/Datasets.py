@@ -78,9 +78,5 @@ class Datasets():
         Returns:
         --------
             pd.DataFrame: The dataset that was loaded, either the full dataset or a sample, depending on the initialization parameters.
-        
-        Raises:
-        -------
-            None.
         """
         return self.__data
