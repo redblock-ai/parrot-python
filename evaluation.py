@@ -2,6 +2,15 @@
 parrot.evaluation encompases the metrics which enable evaluation of candidate responses.
 """
 from datasets.datasets import Datasets
+import logging
+
+#config logging
+logging.basicConfig( 
+                filename=None,
+                level=logging.INFO,          
+                format='%(asctime)s - %(levelname)s - %(message)s',  #our custom log format
+                datefmt='%Y-%m-%d %H:%M:%S'
+            )
 
 class MillionaireException(Exception):
     """
@@ -32,6 +41,7 @@ class MillionaireMetric:
     """
     def __init__(self, dataset: Datasets) -> None:
         try:
+            logging.info("[MillionaireMetric] Initializing MillionaireMetric for evaluation of candidate responses...")
             if not isinstance(dataset, Datasets):
                 raise MillionaireExceptionGroup.InvalidDataset(message="Dataset passed cannot be of type None.")
             if dataset.current_dataset != "millionaire":
@@ -40,7 +50,9 @@ class MillionaireMetric:
             self.__data_frame = dataset.get_data_frame() #get the millionaire candidate response, dataframe.
             if len(self.__data_frame) == 0:
                 raise MillionaireExceptionGroup.EmptyDataFrame()
+            logging.info("[MillionaireMetric] Initialization was successful!")
         except Exception as e:
+            logging.error(str(e))
             raise e
 
 class JeopardyMetric:
