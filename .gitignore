@@ -10,6 +10,10 @@ test.ipynb
 key.json
 .DS_Store
 
+samples/
+
+
+
 # C extensions
 *.so
 
