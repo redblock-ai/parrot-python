@@ -8,6 +8,7 @@ from qa_metrics.pedant import PEDANT
 from qa_metrics.transformerMatcher import TransformerMatcher
 from statistics import mean
 import pandas as pd
+import re
 
 #config logging
 logging.basicConfig( 
@@ -95,6 +96,15 @@ class MillionaireMetric:
 
             raise e
 
+    def __get_question_number(string:str) -> int:
+        """
+        This private member function extracts the level of the question being posed out of the 15 levels in place for Millionaire.
+        """
+        try:
+            return int(re.findall(pattern="\((.[0-9]*)", string=string)[0])#can raise array out of bound index error when there is no such number.)
+        except:
+            return 1 #returns question of level 1 
+
     def __get_pedant_score(self, question:str, answer:str, candidate_answer:str) -> float:
         """
         This method employs a judge LLM (tiny-bert) metric that produces a score based of the 7 AC rules towards PEDANT wrapped around exception handling.
@@ -105,19 +115,6 @@ class MillionaireMetric:
             logging.error(str(e))
             raise e
 
-    def __get_judge_match_score(self, answer: str, candidate: str, question: str) -> tuple:
-        """
-        This method employs a judge LLM (tiny-bert) which returns a score for candidate and labeled answer match. 
-        This method returns a tuple of match score and boolean match result.
-        """
-        try:
-            score = self.__transformer_matcher.get_score(answer, candidate, question)
-            match_result = self.__transformer_matcher.transformer_match(reference = answer, candidate = candidate, question = question)
-            return (score, match_result)
-        except Exception as e:
-            logging.error(str(e))
-            raise e
-
     def evaluate_candidate_responses(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         The evaluate method makes use of the helper method to perform regression over a dataframe by iteration.
@@ -125,26 +122,52 @@ class MillionaireMetric:
         try:
             logging.info("[MillionaireMetric] Determining answer correctness for each sample...")
             scores = list() #local variable to store individual pedant scores.
-            judge_match_score = list() #local variable to store JudgeLLM score.
-            judge_match = list()
             for index, row in df.iterrows():
                 question = row["question"]
                 answer = row["normalized_correct_opt"]
                 candidate = row["normalized_output"]
                 score = self.__get_pedant_score(question = question, answer=answer, candidate_answer=candidate)
-                judge_results = self.__get_judge_match_score(answer= answer, question= question, candidate= candidate)  
-                judge_match_score.append(judge_results[0])
-                judge_match.append(judge_results[1])
                 scores.append(score)
             logging.info("[MillionaireMetric] Done.")
             logging.info("[MillionaireMetric] Injecting values into the dataframe.")
             df["pedant_score"] = scores
-            df["match_score"] = judge_match_score
-            df["match"] = judge_match
             logging.info("[MillionaireMetric] Done.")
             return df
         except RuntimeError as e:
             logging.error("[MillionaireMetric] The following error ocurred while evaluating candidate samples: "+str(e))
+            raise e
+
+    def compute_millionaire_score(self) -> dict:
+        """
+        This method computes the millionaire score by using the latent variable weight, per level. 
+        """
+        try:
+            logging.info("[MillionaireMetric] Determining PARROT-Millionaire score.")
+            self.__data_frame = self.evaluate_candidate_responses(self.__data_frame) #perform samplewise evaluation.
+
+            logging.info("[MillionaireMetric] Extracting level no. from question info per-sample.")
+            self.__data_frame["level"] = self.__data_frame["question_info"].apply(self.__get_question_number)
+            logging.info("[MillionaireMetric] New column added with name 'level' to the data-frame.")
+            score_at_level = list()
+            millionaire_score = dict() #results object.
+
+            logging.info("[MillionaireMetric] Calculating final results..")
+            #determine the performance per-level. Summation of performance at each level yields the final parrot-milllionaire score.
+            for question_number in range(1, 16):
+                pedant_scores = self.__data_frame["pedant_score"].loc[self.__data_frame["level"] == question_number]
+                avg_pedant_score_per_question = mean(pedant_scores)
+                key = f"Level_{question_number}"
+                ac_score = self.__WEIGHTS__[key] * avg_pedant_score_per_question
+                performance_at_level = f"performance_at_level_{question_number}"
+                millionaire_score[performance_at_level] = round(ac_score, 2)
+                score_at_level.append(ac_score)
+            logging.info("[MillionaireScore] PARROT-Millionaire results are now ready!")
+            
+            millionaire_score["millionaire_score"] = round(sum(score_at_level), 2) 
+            
+            return millionaire_score
+        except Exception as e:
+            logging.error("[MillionaireMetric] The following error ocurred while calculating the Millionaire score: "+str(e))
             raise e
 
 class JeopardyMetric:
