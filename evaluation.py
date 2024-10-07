@@ -96,7 +96,7 @@ class MillionaireMetric:
 
             raise e
 
-    def __get_question_number(string:str) -> int:
+    def __get_level_number(self, string:str) -> int:
         """
         This private member function extracts the level of the question being posed out of the 15 levels in place for Millionaire.
         """
@@ -146,19 +146,19 @@ class MillionaireMetric:
             self.__data_frame = self.evaluate_candidate_responses(self.__data_frame) #perform samplewise evaluation.
 
             logging.info("[MillionaireMetric] Extracting level no. from question info per-sample.")
-            self.__data_frame["level"] = self.__data_frame["question_info"].apply(self.__get_question_number)
+            self.__data_frame["level"] = self.__data_frame["question_info"].apply(self.__get_level_number)
             logging.info("[MillionaireMetric] New column added with name 'level' to the data-frame.")
             score_at_level = list()
             millionaire_score = dict() #results object.
 
             logging.info("[MillionaireMetric] Calculating final results..")
             #determine the performance per-level. Summation of performance at each level yields the final parrot-milllionaire score.
-            for question_number in range(1, 16):
-                pedant_scores = self.__data_frame["pedant_score"].loc[self.__data_frame["level"] == question_number]
+            for level_number in self.__data_frame["level"].unique():
+                pedant_scores = self.__data_frame["pedant_score"].loc[self.__data_frame["level"] == level_number]
                 avg_pedant_score_per_question = mean(pedant_scores)
-                key = f"Level_{question_number}"
+                key = f"Level_{level_number}"
                 ac_score = self.__WEIGHTS__[key] * avg_pedant_score_per_question
-                performance_at_level = f"performance_at_level_{question_number}"
+                performance_at_level = f"performance_at_level_{level_number}"
                 millionaire_score[performance_at_level] = round(ac_score, 2)
                 score_at_level.append(ac_score)
             logging.info("[MillionaireScore] PARROT-Millionaire results are now ready!")
@@ -175,28 +175,32 @@ class JeopardyMetric:
 
 class Evaluate(MillionaireMetric, JeopardyMetric):
     """
-    Class which inherits from Jeopardy and Millionaire Metric serves as a composite evaluation for determining the PARROT score.
+    Class that inherits from JeopardyMetric and MillionaireMetric to serve as a composite evaluation for determining the PARROT score.
     """
 
     def __init__(self, dataset: Datasets) -> None:
         try:
-            logging.info()
+            logging.info("[Evaluate] Determining Metric to apply for the outputs..")
+            # Directly call the appropriate base class initializer based on dataset type
             if dataset.current_dataset == "millionaire":
                 MillionaireMetric.__init__(self, dataset)
             elif dataset.current_dataset == "jeopardy":
                 JeopardyMetric.__init__(self, dataset)
             else:
-                raise EvaluationExceptionGroup.InvalidDataset("[Evaluate] Invalid dataset passed! Dataset must be of type Jeopardy or Millionaire.")
+                raise EvaluationExceptionGroup.InvalidDataset(
+                    "[Evaluate] Invalid dataset passed! Dataset must be of type Jeopardy or Millionaire."
+                )
         except Exception as e:
-            logging.error("[Evaluate] The following error occured while initializing evaluation module: "+str(e))
+            logging.error("[Evaluate] The following error occurred while initializing evaluation module: " + str(e))
             raise e
 
-    #wrapper method that computes the millionaire score.
+    # Wrapper method that computes the millionaire score.
     def get_millionaire_report(self):
-        return MillionaireMetric.compute_millionaire_score()
+        return self.compute_millionaire_score()
 
     def get_parrot_score(self):
         millionaire_report = self.get_millionaire_report()
         millionaire_score = millionaire_report["millionaire_score"]
         parrot_score = millionaire_score 
         return parrot_score
+

@@ -233,7 +233,15 @@ class OllamaAdapter:
             except Exception as e:
                 logging.error("[ERR] The following error occured while trying to answer the questions: "+str(e))
 
-    def update_dataframe(self) -> pd.DataFrame:
+    def __to_lower(self, string: str) -> str:
+        """
+        Returns a string converted into lowercase for case consistency.
+        """
+        string = str(string)
+        return string.lower()
+
+
+    def perform_inference(self) -> Datasets:
         """
             Updates the current dataframe by inserting two new columns, namely 'raw_output' and 'output', and returns the updated dataframe. Logs progress throughout the process.
 
@@ -253,12 +261,13 @@ class OllamaAdapter:
                 Exception: Raised if any unexpected error occurs during the question-processing loop.
         """
         try:
-            logging.info("[OllamaAdapter] ")
+            logging.info("[OllamaAdapter] Starting LLM inference now.")
             __answers__ = self.process_questions()
-            
+            logging.info("[OllamaAdapter] Saving these answers within the data_frame.")
+            self.__data["raw_output"] = __answers__
             #the only normalization needed is converstion of text into lowercase.
-            self.__data["normalized_output"] = self.__data["raw_output"].apply(str.lower())
-
-
+            self.__data["normalized_output"] = self.__data["raw_output"].apply(self.__to_lower)
+            self.__dataset_handler.set_data_frame(self.__data) #updates the data_frame with latest changes made locally.
+            return self.__dataset_handler
         except Exception as e:
-            logging.error("[ERR] The following error occured while trying processing the responses from the candidate LLM: "+str(e))
+            logging.error("[OllamaAdapter] The following error occured while trying processing the responses from the candidate LLM: "+str(e))
