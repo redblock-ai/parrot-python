@@ -80,3 +80,18 @@ class Datasets():
             pd.DataFrame: The dataset that was loaded, either the full dataset or a sample, depending on the initialization parameters.
         """
         return self.__data
+
+    def set_data_frame(self, data_frame:pd.DataFrame) -> None:
+        """
+        Updates the dataset that has been loaded into memory as a Pandas.DataFrame. This method allows other classes or functions to access the data for further analysis or processing.
+
+        Arguments:
+        ---------
+            data_frame (pd.Dataframe):
+                The new data_frame that has to be updated in memory.
+
+        Returns:
+        --------
+            None.
+        """
+        self.__data = data_frame
