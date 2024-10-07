@@ -18,14 +18,14 @@ logging.basicConfig(
                 datefmt='%Y-%m-%d %H:%M:%S'
             )
 
-class MillionaireException(Exception):
+class EvaluationException(Exception):
     """
-    Base class for custom Millionaire exceptions.
+    Base class for custom exceptions.
     """
     pass
 
-class MillionaireExceptionGroup:
-    class InvalidDataset(MillionaireException):
+class EvaluationExceptionGroup:
+    class InvalidDataset(EvaluationException):
         """
         Exception raised for invalid dataset type.
         """
@@ -33,7 +33,7 @@ class MillionaireExceptionGroup:
             self.message = message
             super().__init__(self.message)
     
-    class EmptyDataFrame(MillionaireException):
+    class EmptyDataFrame(EvaluationException):
         """
         Exception raised if the data_frame is empty.
         """
@@ -41,7 +41,7 @@ class MillionaireExceptionGroup:
             self.message = message
             super().__init__(self.message)
     
-    class SampleEvaluationFailed(MillionaireException):
+    class SampleEvaluationFailed(EvaluationException):
         """
         Exception raised if the sample evaluation fails, or is insuccessful.
         """
@@ -58,13 +58,13 @@ class MillionaireMetric:
             logging.info("[MillionaireMetric] Initializing MillionaireMetric for evaluation of candidate responses...")
             logging.info("[MillionaireMetric] Performing necessary checks..")
             if not isinstance(dataset, Datasets):
-                raise MillionaireExceptionGroup.InvalidDataset(message="Dataset passed cannot be of type None.")
+                raise EvaluationExceptionGroup.InvalidDataset(message="Dataset passed cannot be of type None.")
             if dataset.current_dataset != "millionaire":
-                raise MillionaireExceptionGroup.InvalidDataset(message="Dataset passed does not correspond to Millionaire-set.")
+                raise EvaluationExceptionGroup.InvalidDataset(message="Dataset passed does not correspond to Millionaire-set.")
             
             self.__data_frame = dataset.get_data_frame() #get the millionaire candidate response, dataframe.
             if len(self.__data_frame) == 0:
-                raise MillionaireExceptionGroup.EmptyDataFrame()
+                raise EvaluationExceptionGroup.EmptyDataFrame()
 
             logging.info("[MillionaireMetric] Loading weights required to compute performance per sample...")
             #loading the weights:
@@ -133,7 +133,7 @@ class MillionaireMetric:
             df["pedant_score"] = scores
             logging.info("[MillionaireMetric] Done.")
             return df
-        except MillionaireExceptionGroup.SampleEvaluationFailed as e:
+        except EvaluationExceptionGroup.SampleEvaluationFailed as e:
             logging.error("[MillionaireMetric] The following error ocurred while evaluating candidate samples: "+str(e))
             raise e
 
@@ -166,7 +166,7 @@ class MillionaireMetric:
             millionaire_score["millionaire_score"] = round(sum(score_at_level), 2) 
             
             return millionaire_score
-        except MillionaireExceptionGroup.SampleEvaluationFailed as e:
+        except EvaluationExceptionGroup.SampleEvaluationFailed as e:
             logging.error("[MillionaireMetric] The following error ocurred while calculating the Millionaire score: "+str(e))
             raise e
 
