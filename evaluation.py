@@ -173,5 +173,30 @@ class MillionaireMetric:
 class JeopardyMetric:
     pass
 
-class Evaluate:
-    pass
+class Evaluate(MillionaireMetric, JeopardyMetric):
+    """
+    Class which inherits from Jeopardy and Millionaire Metric serves as a composite evaluation for determining the PARROT score.
+    """
+
+    def __init__(self, dataset: Datasets) -> None:
+        try:
+            logging.info()
+            if dataset.current_dataset == "millionaire":
+                MillionaireMetric.__init__(self, dataset)
+            elif dataset.current_dataset == "jeopardy":
+                JeopardyMetric.__init__(self, dataset)
+            else:
+                raise EvaluationExceptionGroup.InvalidDataset("[Evaluate] Invalid dataset passed! Dataset must be of type Jeopardy or Millionaire.")
+        except Exception as e:
+            logging.error("[Evaluate] The following error occured while initializing evaluation module: "+str(e))
+            raise e
+
+    #wrapper method that computes the millionaire score.
+    def get_millionaire_report(self):
+        return MillionaireMetric.compute_millionaire_score()
+
+    def get_parrot_score(self):
+        millionaire_report = self.get_millionaire_report()
+        millionaire_score = millionaire_report["millionaire_score"]
+        parrot_score = millionaire_score 
+        return parrot_score
