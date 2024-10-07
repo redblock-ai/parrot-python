@@ -133,7 +133,7 @@ class MillionaireMetric:
             df["pedant_score"] = scores
             logging.info("[MillionaireMetric] Done.")
             return df
-        except RuntimeError as e:
+        except MillionaireExceptionGroup.SampleEvaluationFailed as e:
             logging.error("[MillionaireMetric] The following error ocurred while evaluating candidate samples: "+str(e))
             raise e
 
@@ -166,7 +166,7 @@ class MillionaireMetric:
             millionaire_score["millionaire_score"] = round(sum(score_at_level), 2) 
             
             return millionaire_score
-        except Exception as e:
+        except MillionaireExceptionGroup.SampleEvaluationFailed as e:
             logging.error("[MillionaireMetric] The following error ocurred while calculating the Millionaire score: "+str(e))
             raise e
 
