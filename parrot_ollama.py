@@ -135,7 +135,10 @@ class OllamaAdapter:
             self.__chain = self.__prompt | self.__model
             logging.debug("[OllamaAdapter] Checking if requested LLM is available on Ollama locally...")
             try:
-                self.__chain.invoke({"question": "how are you?"}) #testing to check if the chain is functional. This should not raise an exception.
+                if self.__dataset_handler.current_dataset == 'jeopardy':
+                    self.__chain.invoke({"question": "how are you?", "category":"Casual Greetings"}) #testing to check if the chain is functional. This should not raise an exception.
+                else:
+                    self.__chain.invoke({"question": "how are you?"}) #testing to check if the chain is functional. This should not raise an exception.
             except Exception as e:
                 logging.error(str(e))
                 raise Exception(f"Model not found, download it using the CLI command 'ollama run <model-name>'")
