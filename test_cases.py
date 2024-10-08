@@ -6,6 +6,8 @@ using CLI run the script: <pytest -v --disable-warnings test_cases.py>
 import pytest
 from datasets.datasets import Datasets
 from parrot_ollama import OllamaAdapter
+from evaluation import MillionaireMetric
+from qa_metrics.pedant import PEDANT
 
 
 #Datasets TESTCASES:
@@ -49,7 +51,7 @@ def test_ollama_adapter_initialization_success():
     Test successful initialization of OllamaAdapter
     """
     obj = Datasets(dataset = "millionaire")
-    model_name = "phi3.5"
+    model_name = "llama3.2:1b"
     prompt = """Answer following question in directly without any additional text, Question: {question}"""
     
     adapter = OllamaAdapter(
@@ -105,7 +107,7 @@ def test_ollama_adapter_millionaire_test_success():
     """
     sample_size = 100
     dataset = Datasets(dataset= "millionaire", sample_size=sample_size)
-    model_name = "phi3"
+    model_name = "llama3.2:1b"
     prompt = """Answer following question in directly without any additional text, Question: {question}"""
     ollama_handler = OllamaAdapter(
             dataset = dataset,  
@@ -126,7 +128,7 @@ def test_ollama_adapter_jeopardy_test_success():
     """
     sample_size = 100
     dataset = Datasets(dataset= "jeopardy", sample_size=sample_size)
-    model_name = "phi3"
+    model_name = "llama3.2:1b"
     prompt = """Answer following question in directly without any additional text, Question: {question}"""
     ollama_handler = OllamaAdapter(
             dataset = dataset,  
@@ -139,5 +141,30 @@ def test_ollama_adapter_jeopardy_test_success():
     assert answers is not None #response must not be None.
     assert isinstance(answers, list) #check if response is list of answers.
     assert len(dataset.get_data_frame()) == len(answers) #No empty responses.
+
+#Test_cases for: MillionaireMetric
+@pytest.mark.MillionaireMetricInitSuccess
+def test_millionaire_metric_initialization_success():
+    """
+    Test if MillionaireMetric is instantiated successfully on passing a Millionaire-set DAO.
+    """
+    obj = Datasets(dataset = "millionaire", sample_size=100)
+
+    model_name = "llama3.2:1b"
+    prompt = """Answer following question in directly without any additional text, Question: {question}"""
+        
+    ollama_handler = OllamaAdapter(
+                dataset = obj,  
+                model_name=model_name, 
+                prompt=prompt
+            )
+    obj = ollama_handler.perform_inference() #get the updated data_frame with answers.
+
+    assert obj.current_dataset is "millionaire"
+    milm = MillionaireMetric(dataset= obj)
+    assert isinstance(milm.__WEIGHTS__, dict)
+
+
+
         
     
