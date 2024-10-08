@@ -3,9 +3,7 @@ parrot.evaluation encompases the metrics which enable evaluation of candidate re
 """
 from datasets.datasets import Datasets
 import logging
-from qa_metrics.f1 import f1_match,f1_score_with_precision_recall
 from qa_metrics.pedant import PEDANT
-from qa_metrics.transformerMatcher import TransformerMatcher
 from statistics import mean
 import pandas as pd
 import re
@@ -88,8 +86,6 @@ class MillionaireMetric:
             #init requirements:
             logging.info("[MillionaireMetric] Mapping device for logits...")
             self.__pedant = PEDANT()
-            self.__transformer_matcher = TransformerMatcher("tiny-bert") 
-
             logging.info("[MillionaireMetric] All checks are complete. Initialization was successful!")
         except Exception as e:
             logging.error(str(e))
