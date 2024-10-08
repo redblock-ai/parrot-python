@@ -8,6 +8,7 @@ from datasets.datasets import Datasets
 from parrot_ollama import OllamaAdapter
 from evaluation import MillionaireMetric
 from qa_metrics.pedant import PEDANT
+import pandas as pd
 
 
 #Datasets TESTCASES:
@@ -56,7 +57,7 @@ def test_ollama_adapter_initialization_success():
     """
     obj = Datasets(dataset = "millionaire")
     model_name = "llama3.2:1b"
-    prompt = """Answer following question in directly without any additional text, Question: {question}"""
+    prompt = """Answer following question directly without any additional text, Question: {question}"""
     
     adapter = OllamaAdapter(
         dataset=obj, 
@@ -94,7 +95,7 @@ def test_ollama_adapter_initialization_failure_invalid_model():
     """
     obj = Datasets(dataset = "millionaire")
     model_name = "ph"
-    prompt = """Answer following question in directly without any additional text, Question: {question}"""
+    prompt = """Answer following question directly without any additional text, Question: {question}"""
     
 
     #we are expecting an exception to be raised here:
@@ -115,7 +116,7 @@ def test_ollama_adapter_millionaire_test_success():
     sample_size = 100
     dataset = Datasets(dataset= "millionaire", sample_size=sample_size)
     model_name = "llama3.2:1b"
-    prompt = """Answer following question in directly without any additional text, Question: {question}"""
+    prompt = """Answer following question directly without any additional text, Question: {question}"""
     ollama_handler = OllamaAdapter(
             dataset = dataset,  
             model_name=model_name, #Model isn't available locally.
@@ -137,7 +138,7 @@ def test_ollama_adapter_jeopardy_test_success():
     sample_size = 100
     dataset = Datasets(dataset= "jeopardy", sample_size=sample_size)
     model_name = "llama3.2:1b"
-    prompt = """Answer following question in directly without any additional text, Question: {question}"""
+    prompt = """Answer following question directly without any additional text, Question: {question}"""
     ollama_handler = OllamaAdapter(
             dataset = dataset,  
             model_name=model_name, #Model isn't available locally.
@@ -160,7 +161,7 @@ def test_millionaire_metric_initialization_success():
     obj = Datasets(dataset = "millionaire", sample_size=100)
 
     model_name = "llama3.2:1b"
-    prompt = """Answer following question in directly without any additional text, Question: {question}"""
+    prompt = """Answer following question directly without any additional text, Question: {question}"""
         
     ollama_handler = OllamaAdapter(
                 dataset = obj,  
@@ -182,7 +183,7 @@ def test_millionaire_metric_init_failure_invalid_dataset():
     obj = Datasets(dataset = "jeopardy", sample_size=100)
 
     model_name = "llama3.2:1b"
-    prompt = """Answer following question in directly without any additional text, Question: {question}"""
+    prompt = """Answer following question directly without any additional text \nQuestion: {question}"""
         
     ollama_handler = OllamaAdapter(
                 dataset = obj,  
@@ -193,6 +194,35 @@ def test_millionaire_metric_init_failure_invalid_dataset():
 
     with pytest.raises(Exception):
         milm = MillionaireMetric(dataset= obj) #dataset passed is if type "jeopardy" which should raise an invalid dataset type.
+
+@pytest.mark.MillionaireMetric
+@pytest.mark.MillionaireMetricScoreGeneration
+def test_millionaire_metric_score_generation():
+    """
+    Test if MillionaireMetric is able to gauge the answer correctness of a sample label and candidate response.
+    """
+    obj = Datasets(dataset = "millionaire", sample_size=100)
+    size = len(obj.get_data_frame())
     
+    model_name = "llama3.2:1b"
+    prompt = """Answer following question directly without any additional text \nQuestion: {question}"""
+        
+    ollama_handler = OllamaAdapter(
+                dataset = obj,  
+                model_name=model_name, 
+                prompt=prompt
+            )
+    obj = ollama_handler.perform_inference() #get the updated data_frame with answers.
+    milm = MillionaireMetric(dataset= obj)
+    data = milm.evaluate_candidate_responses(df=obj.get_data_frame())
+    report = milm.compute_millionaire_score()
+    assert isinstance(data, pd.DataFrame) #check if the data_frame is not corrupt 
+    assert len(data) !=0 and len(data) == size #evaluation must not lead to sample size reduction. 
+    assert "pedant_score" in data.columns #pedant score is the new column that is added.
+    assert isinstance(report, dict)
+    assert report.get("millionaire_score", None) is not None #the report MUST contain the millionaire score!
+    assert isinstance(report["millionaire_score"], float) and report["millionaire_score"]> 0.00
+    assert len(report.keys()) > 1 #report should also contain individual performance scores per level!
+
         
     
