@@ -11,6 +11,7 @@ from qa_metrics.pedant import PEDANT
 
 
 #Datasets TESTCASES:
+@pytest.mark.Datasets
 @pytest.mark.DatasetsSampleSizeSuccess
 def test_datasets_sample_size_success():
     """
@@ -22,6 +23,7 @@ def test_datasets_sample_size_success():
 
     assert len(data) == sample
 
+@pytest.mark.Datasets
 @pytest.mark.DatasetsSampleSizeFailure
 def test_datasets_sample_size_failure():
     """
@@ -33,6 +35,7 @@ def test_datasets_sample_size_failure():
         data = obj.get_data_frame()
         assert data is None #data should be None.
 
+@pytest.mark.Datasets
 @pytest.mark.DatasetsSampleSizeFailure
 def test_datasets_sample_size_not_provided_success():
     """
@@ -45,6 +48,7 @@ def test_datasets_sample_size_not_provided_success():
     assert len(data) !=0 #Dataframe cannot be empty!
 
 #OllamaAdapter TESTCASES:
+@pytest.mark.OllamaAdapter
 @pytest.mark.OllamaAdapterInitSuccess
 def test_ollama_adapter_initialization_success():
     """
@@ -65,6 +69,7 @@ def test_ollama_adapter_initialization_success():
     assert adapter._OllamaAdapter__prompt is not None
     assert adapter._OllamaAdapter__chain is not None
 
+@pytest.mark.OllamaAdapter
 @pytest.mark.OllamaAdapterInitFailure
 def test_ollama_adapter_initialization_failure_invalid_dataframe():
     """
@@ -81,6 +86,7 @@ def test_ollama_adapter_initialization_failure_invalid_dataframe():
             prompt=prompt
         )
 
+@pytest.mark.OllamaAdapter
 @pytest.mark.OllamaAdapterInitFailure
 def test_ollama_adapter_initialization_failure_invalid_model():
     """
@@ -99,7 +105,8 @@ def test_ollama_adapter_initialization_failure_invalid_model():
                 model_name=model_name, #Model isn't available locally.
                 prompt=prompt
             )
-        
+
+@pytest.mark.OllamaAdapter        
 @pytest.mark.OllamaAdapterMillionaireTestSuccess
 def test_ollama_adapter_millionaire_test_success():
     """
@@ -121,6 +128,7 @@ def test_ollama_adapter_millionaire_test_success():
     assert isinstance(answers, list) #check if response is list of answers.
     assert len(dataset.get_data_frame()) == len(answers) #No empty responses.
 
+@pytest.mark.OllamaAdapter
 @pytest.mark.OllamaAdapterJeopardyTestSuccess
 def test_ollama_adapter_jeopardy_test_success():
     """
@@ -143,6 +151,7 @@ def test_ollama_adapter_jeopardy_test_success():
     assert len(dataset.get_data_frame()) == len(answers) #No empty responses.
 
 #Test_cases for: MillionaireMetric
+@pytest.mark.MillionaireMetric
 @pytest.mark.MillionaireMetricInitSuccess
 def test_millionaire_metric_initialization_success():
     """
@@ -164,7 +173,26 @@ def test_millionaire_metric_initialization_success():
     milm = MillionaireMetric(dataset= obj)
     assert isinstance(milm.__WEIGHTS__, dict)
 
+@pytest.mark.MillionaireMetric
+@pytest.mark.MillionaireMetricInitFailure
+def test_millionaire_metric_init_failure_invalid_dataset():
+    """
+    Test if MillionaireMetric raises an Exception when mis-matching dataset is passed for evaluation.
+    """
+    obj = Datasets(dataset = "jeopardy", sample_size=100)
 
+    model_name = "llama3.2:1b"
+    prompt = """Answer following question in directly without any additional text, Question: {question}"""
+        
+    ollama_handler = OllamaAdapter(
+                dataset = obj,  
+                model_name=model_name, 
+                prompt=prompt
+            )
+    obj = ollama_handler.perform_inference() #get the updated data_frame with answers.
 
+    with pytest.raises(Exception):
+        milm = MillionaireMetric(dataset= obj) #dataset passed is if type "jeopardy" which should raise an invalid dataset type.
+    
         
     
