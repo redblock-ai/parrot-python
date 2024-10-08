@@ -1,7 +1,7 @@
 """
 parrot.evaluation encompases the metrics which enable evaluation of candidate responses.
 """
-from datasets.datasets import Datasets
+from .datasets.datasets import Datasets
 import logging
 from qa_metrics.pedant import PEDANT
 from statistics import mean
@@ -85,7 +85,7 @@ class MillionaireMetric:
 
             logging.info("[MillionaireMetric] Loading weights required to compute performance per sample...")
             #loading the weights:
-            self.__WEIGHTS__ = {"Level_1": 0.025821596244131457, 
+            self.__MILLIONAIRE_WEIGHTS__ = {"Level_1": 0.025821596244131457, 
                                 "Level_2": 0.007042253521126761, 
                                 "Level_3": 0.007042253521126761, 
                                 "Level_4": 0.011737089201877935, 
@@ -217,7 +217,7 @@ class MillionaireMetric:
                 pedant_scores = self.__data_frame["pedant_score"].loc[self.__data_frame["level"] == level_number]
                 avg_pedant_score_per_question = mean(pedant_scores)
                 key = f"Level_{level_number}"
-                ac_score = self.__WEIGHTS__[key] * avg_pedant_score_per_question
+                ac_score = self.__MILLIONAIRE_WEIGHTS__[key] * avg_pedant_score_per_question
                 performance_at_level = f"performance_at_millionaire_level_{level_number}"
                 millionaire_score[performance_at_level] = round(ac_score, 2)
                 score_at_level.append(ac_score)
@@ -267,7 +267,7 @@ class JeopardyMetric:
 
             logging.info("[JeopardyMetric] Loading weights required to compute performance per sample...")
             #loading the weights:
-            self.__WEIGHTS__ = {
+            self.__JEOPARDY_WEIGHTS__ = {
                                 "Level_1": 0.05254746074116856, 
                                 "Level_2": 0.061253548911302996, 
                                 "Level_3": 0.06147968560872836, 
@@ -289,23 +289,6 @@ class JeopardyMetric:
         except Exception as e:
             logging.error(str(e))
             raise e
-
-    def __inject_values(self):
-        try:
-            logging.info("[JeopardyMetric] Injecting relevant values into candidate set...")
-            coord_map = self.__data_frame.set_index('question')['coord'].to_dict()
-            extra_info_map = self.__data_frame.set_index('question')['extra_info'].to_dict()
-            round_name_map = self.__data_frame.set_index('question')['round_name'].to_dict()
-
-            self.__data_frame['coord'] = self.__data_frame['question'].map(coord_map)
-            logging.info("[JeopardyMetric] Determining co-ordinates of the clue on board.")
-            self.__data_frame['extra_info'] = self.__data_frame['question'].map(extra_info_map)
-            logging.info("[JeopardyMetric] Done, these co-ordinates will help us determine the difficulty.")
-            logging.info("[JeopardyMetric] Extracting round names..")
-            self.__data_frame['round_name'] = self.__data_frame['question'].map(round_name_map)
-            logging.info("[JeopardyMetric] All useful information has been processed.")
-        except Exception as e:
-            logging.error("[JeopardyMetric] The following error occured whilst trying to inject required fields into the candidate set: "+str(e))
 
     def __get_coord_difficulty(self, data: pd.DataFrame) -> list:
         """Accepts the dataframe to determine the actual difficulty level of the Clue!"""
@@ -412,7 +395,15 @@ class JeopardyMetric:
 
     def compute_jeopardy_score(self) -> dict:
         """
-        Driver method.
+        Calculates the overall Jeopardy score based on predefined weights per question level.
+
+        Returns:
+        -------
+            dict: A dictionary with scores for each level and the cumulative Jeopardy score.
+
+        Raises:
+        ------
+            EvaluationExceptionGroup.SampleEvaluationFailed: Raised if an error occurs during score computation.
         """
         try:
             self.__data_frame["level"] = self.__get_coord_difficulty(self.__data_frame)
@@ -420,13 +411,13 @@ class JeopardyMetric:
             jeopardy_score = dict() #results object.
             self.__data_frame = self.evaluate_candidate_responses(self.__data_frame)
 
-            logging.info("[MillionaireMetric] Calculating final results..")
-            #determine the performance per-level. Summation of performance at each level yields the final parrot-milllionaire score.
+            logging.info("[JeopardyMetric] Calculating final results..")
+            #determine the performance per-level. Summation of performance at each level yields the final parrot-jeopardy score.
             for level_number in sorted(self.__data_frame["level"].unique()):
                 pedant_scores = self.__data_frame["pedant_score"].loc[self.__data_frame["level"] == level_number]
                 avg_pedant_score_per_level = mean(pedant_scores)
                 key = f"Level_{level_number}"
-                ac_score = self.__WEIGHTS__[key] * avg_pedant_score_per_level
+                ac_score = self.__JEOPARDY_WEIGHTS__[key] * avg_pedant_score_per_level
                 performance_at_level = f"performance_at_jeopardy_level_{level_number}"
                 jeopardy_score[performance_at_level] = round(ac_score, 2)
                 score_at_level.append(ac_score)
@@ -444,29 +435,40 @@ class Evaluate(MillionaireMetric, JeopardyMetric):
     Class that inherits from JeopardyMetric and MillionaireMetric to serve as a composite evaluation for determining the PARROT score.
     """
 
-    def __init__(self, dataset: Datasets) -> None:
+    def __init__(self, millionaire_outputs: Datasets = None, jeopardy_outputs:Datasets = None) -> None:
         try:
             logging.info("[Evaluate] Determining Metric to apply for the outputs..")
-            # Directly call the appropriate base class initializer based on dataset type
-            if dataset.current_dataset == "millionaire":
-                MillionaireMetric.__init__(self, dataset)
-            elif dataset.current_dataset == "jeopardy":
-                JeopardyMetric.__init__(self, dataset)
-            else:
+            #calling the appropriate base class initializer based on dataset type
+            if millionaire_outputs != None and millionaire_outputs.current_dataset == "millionaire":
+                MillionaireMetric.__init__(self, millionaire_outputs)
+            if jeopardy_outputs != None and jeopardy_outputs.current_dataset == "jeopardy":
+                JeopardyMetric.__init__(self, jeopardy_outputs)
+            if millionaire_outputs.current_dataset != "millionaire" or jeopardy_outputs.current_dataset != "jeopardy":
                 raise EvaluationExceptionGroup.InvalidDataset(
                     "[Evaluate] Invalid dataset passed! Dataset must be of type Jeopardy or Millionaire."
                 )
+
+            self.__millionaire = millionaire_outputs
+            self.__jeopardy = jeopardy_outputs
         except Exception as e:
             logging.error("[Evaluate] The following error occurred while initializing evaluation module: " + str(e))
             raise e
 
-    # Wrapper method that computes the millionaire score.
-    def get_millionaire_report(self):
+    #wrapper method that computes the millionaire score.
+    def get_millionaire_report(self) -> dict:
+        self.__data_frame = self.__millionaire #update the dataframe dynamically based on the wrapper being used.
         return self.compute_millionaire_score()
 
-    def get_parrot_score(self):
+    #wrapper method that computes the jeopardy score.
+    def get_jeopardy_report(self) -> dict:
+        self.__data_frame = self.__jeopardy
+        return self.compute_jeopardy_score()
+
+    def evaluate(self):
         millionaire_report = self.get_millionaire_report()
         millionaire_score = millionaire_report["millionaire_score"]
-        parrot_score = millionaire_score 
+        jeopardy_report = self.get_jeopardy_report()
+        jeopardy_score = jeopardy_report["jeopardy_score"]
+        parrot_score = mean([millionaire_score, jeopardy_score])
         return parrot_score
 

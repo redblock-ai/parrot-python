@@ -5,7 +5,7 @@ A class that servers as a Ollama adapter for model inference over PARROT-dataset
 import pandas as pd
 import logging
 from langchain_core.prompts import ChatPromptTemplate
-from datasets.datasets import Datasets
+from .datasets.datasets import Datasets
 from langchain_ollama.llms import OllamaLLM
 
 class OllamaAdapterException(Exception):

@@ -55,7 +55,7 @@ class Datasets():
             self.current_dataset = dataset
             self.__cwd = os.getcwd() #get the current working directory.
             
-            self.__FILE__ = self.__cwd +"/datasets/"+ self.current_dataset + ".csv"
+            self.__FILE__ = os.path.join(os.path.dirname(__file__), self.current_dataset + ".csv")
             if sample_size is not None:
                 logging.info(f"[Datasets] Loading dataset with sample_size: {sample_size}.")
                 self.__data = pd.read_csv(self.__FILE__)
