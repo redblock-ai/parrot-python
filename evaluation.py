@@ -47,6 +47,7 @@ class EvaluationExceptionGroup:
             self.message = message
             super().__init__(self.message)
 
+
 class MillionaireMetric:
     """
     Enables evaluation of Dataset() containing candidate-llm responses for millionaire-set. 
@@ -107,7 +108,6 @@ class MillionaireMetric:
             logging.info("[MillionaireMetric] All checks are complete. Initialization was successful!")
         except Exception as e:
             logging.error(str(e))
-
             raise e
 
     def __get_level_number(self, string:str) -> int:
@@ -231,7 +231,66 @@ class MillionaireMetric:
             raise e
 
 class JeopardyMetric:
-    pass
+    """
+    Enables evaluation of Dataset() containing candidate-llm responses for jeopardy-set. 
+    """
+    def __init__(self, dataset: Datasets) -> None:
+        """
+        Initializes the JeopardyMetric class to perform candidate response evaluation 
+        specifically on the Jeopardy dataset.
+
+        Arguments:
+        ---------
+            dataset (Datasets): The dataset object containing candidate responses for the Jeopardy-set.
+        
+        Returns:
+        -------
+            None.
+
+        Raises:
+        ------
+            EvaluationExceptionGroup.InvalidDataset: Raised if the dataset is not of type Datasets 
+                                                     or does not correspond to the Jeopardy-set.
+            EvaluationExceptionGroup.EmptyDataFrame: Raised if the dataset contains no samples.
+        """
+        try:
+            logging.info("[JeopardyMetric] Initializing JeopardyMetric for evaluation of candidate responses...")
+            logging.info("[JeopardyMetric] Performing necessary checks..")
+            if not isinstance(dataset, Datasets):
+                raise EvaluationExceptionGroup.InvalidDataset(message="Dataset passed cannot be of type None.")
+            if dataset.current_dataset != "jeopardy":
+                raise EvaluationExceptionGroup.InvalidDataset(message="Dataset passed does not correspond to Jeopardy-set.")
+            
+            self.__data_frame = dataset.get_data_frame() #get the jeopardy candidate response, dataframe.
+            if len(self.__data_frame) == 0:
+                raise EvaluationExceptionGroup.EmptyDataFrame()
+
+            logging.info("[JeopardyMetric] Loading weights required to compute performance per sample...")
+            #loading the weights:
+            self.__WEIGHTS__ = {
+                                "Level_1": 0.05254746074116856, 
+                                "Level_2": 0.061253548911302996, 
+                                "Level_3": 0.06147968560872836, 
+                                "Level_4": 0.062472425598169574, 
+                                "Level_5": 0.06365604808748175, 
+                                "Level_6": 0.06416794125353957, 
+                                "Level_7": 0.0640391976830593, 
+                                "Level_8": 0.06412496925203041, 
+                                "Level_9": 0.06515027068249322, 
+                                "Level_10": 0.06633502621101102, 
+                                "Level_11": 0.3747734259710153}
+
+            logging.info("[JeopardyMetric] Weights have been initialized.")
+
+            #init requirements:
+            logging.info("[JeopardyMetric] Mapping device for logits...")
+            self.__pedant = PEDANT()
+            logging.info("[JeopardyMetric] All checks are complete. Initialization was successful!")
+        except Exception as e:
+            logging.error(str(e))
+            raise e
+
+    
 
 class Evaluate(MillionaireMetric, JeopardyMetric):
     """
