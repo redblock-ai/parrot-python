@@ -236,6 +236,15 @@ class OllamaAdapter:
     def __to_lower(self, string: str) -> str:
         """
         Returns a string converted into lowercase for case consistency.
+        
+        Arguments:
+            ---------
+                string (str): A string that has to be converted.
+        
+        Returns:
+            --------
+                string (str): Target string in lowercase.
+
         """
         string = str(string)
         return string.lower()
