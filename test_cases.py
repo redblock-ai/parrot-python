@@ -6,7 +6,7 @@ using CLI run the script: <pytest -v --disable-warnings test_cases.py>
 import pytest
 from datasets.datasets import Datasets
 from parrot_ollama import OllamaAdapter
-from evaluation import MillionaireMetric
+from evaluation import MillionaireMetric, JeopardyMetric
 from qa_metrics.pedant import PEDANT
 import pandas as pd
 
@@ -225,4 +225,75 @@ def test_millionaire_metric_score_generation():
     assert len(report.keys()) > 1 #report should also contain individual performance scores per level!
 
         
+#Test_cases for: JeopardyMetric
+@pytest.mark.JeopardyMetric
+@pytest.mark.JeopardyMetricInitSuccess
+def test_jeopardy_metric_initialization_success():
+    """
+    Test if JeopardyMetric is instantiated successfully on passing a Jeopardy-set DAO.
+    """
+    obj = Datasets(dataset = "jeopardy", sample_size=100)
+
+    model_name = "llama3.2:1b"
+    prompt = """Answer following question directly without any additional text, \n Question: {question} \n Category: {category}"""
+        
+    ollama_handler = OllamaAdapter(
+                dataset = obj,  
+                model_name=model_name, 
+                prompt=prompt
+            )
+    obj = ollama_handler.perform_inference() #get the updated data_frame with answers.
+
+    assert obj.current_dataset is "jeopardy"
+    milm = JeopardyMetric(dataset= obj)
+    assert isinstance(milm.__WEIGHTS__, dict)
+
+@pytest.mark.JeopardyMetric
+@pytest.mark.JeopardyMetricInitFailure
+def test_jeopardy_metric_init_failure_invalid_dataset():
+    """
+    Test if JeoaprdyMetric raises an Exception when mis-matching dataset is passed for evaluation.
+    """
+    obj = Datasets(dataset = "millionaire", sample_size=100)
+
+    model_name = "llama3.2:1b"
+    prompt = """Answer following question directly without any additional text \nQuestion: {question}"""
+        
+    ollama_handler = OllamaAdapter(
+                dataset = obj,  
+                model_name=model_name, 
+                prompt=prompt
+            )
+    obj = ollama_handler.perform_inference() #get the updated data_frame with answers.
+
+    with pytest.raises(Exception):
+        jeop = JeopardyMetric(dataset= obj) #dataset passed is if type "millionaire" which should raise an invalid dataset type.
+
+@pytest.mark.JeopardyMetric
+@pytest.mark.JeopardyMetricScoreGeneration
+def test_jeopardy_metric_score_generation():
+    """
+    Test if JeopardyMetric is able to gauge the answer correctness of a sample label and candidate response.
+    """
+    obj = Datasets(dataset = "jeopardy", sample_size=100)
+    size = len(obj.get_data_frame())
     
+    model_name = "llama3.2:1b"
+    prompt = """Answer following question directly without any additional text \nQuestion: {question} \n Category: {category}"""
+        
+    ollama_handler = OllamaAdapter(
+                dataset = obj,  
+                model_name=model_name, 
+                prompt=prompt
+            )
+    obj = ollama_handler.perform_inference() #get the updated data_frame with answers.
+    jeop = JeopardyMetric(dataset= obj)
+    data = jeop.evaluate_candidate_responses(df=obj.get_data_frame())
+    report = jeop.compute_jeopardy_score()
+    assert isinstance(data, pd.DataFrame) #check if the data_frame is not corrupt 
+    assert len(data) !=0 and len(data) == size #evaluation must not lead to sample size reduction. 
+    assert "pedant_score" in data.columns #pedant score is the new column that is added.
+    assert isinstance(report, dict)
+    assert report.get("jeopardy_score", None) is not None #the report MUST contain the millionaire score!
+    assert isinstance(report["jeopardy_score"], float) and report["jeopardy_score"]> 0.00
+    assert len(report.keys()) > 1 #report should also contain individual performance scores per level!
