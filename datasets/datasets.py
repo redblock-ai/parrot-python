@@ -26,6 +26,9 @@ class Datasets():
     -------
         get_data_frame()
             Loads the data from the specified file and returns it as a Pandas.DataFrame.
+        
+        set_data_frame()
+            Updates the data_frame object in memory.
     """
     
     def __init__(self, dataset: str, sample_size: int = None) -> None:

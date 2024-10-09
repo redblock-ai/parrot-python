@@ -4,9 +4,9 @@ using CLI run the script: <pytest -v --disable-warnings test_cases.py>
 """
 
 import pytest
-from datasets.datasets import Datasets
-from parrot_ollama import OllamaAdapter
-from evaluation import MillionaireMetric, JeopardyMetric
+from .datasets.datasets import Datasets
+from .parrot_ollama import OllamaAdapter
+from .evaluation import MillionaireMetric, JeopardyMetric
 from qa_metrics.pedant import PEDANT
 import pandas as pd
 
@@ -172,7 +172,7 @@ def test_millionaire_metric_initialization_success():
 
     assert obj.current_dataset is "millionaire"
     milm = MillionaireMetric(dataset= obj)
-    assert isinstance(milm.__WEIGHTS__, dict)
+    assert isinstance(milm.__MILLIONAIRE_WEIGHTS__, dict)
 
 @pytest.mark.MillionaireMetric
 @pytest.mark.MillionaireMetricInitFailure
@@ -246,7 +246,7 @@ def test_jeopardy_metric_initialization_success():
 
     assert obj.current_dataset is "jeopardy"
     milm = JeopardyMetric(dataset= obj)
-    assert isinstance(milm.__WEIGHTS__, dict)
+    assert isinstance(milm.__JEOPARDY_WEIGHTS__, dict)
 
 @pytest.mark.JeopardyMetric
 @pytest.mark.JeopardyMetricInitFailure
