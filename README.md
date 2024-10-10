@@ -14,47 +14,104 @@
   - **Jeopardy Metric**: Evaluates the model’s ability to handle multi-layered, ambiguous questions with a structured difficulty gradient.
   
 - **Comprehensive Scoring**: The framework calculates the **PARROTscore**, a composite metric representing the model’s performance across the two datasets, providing a holistic evaluation.
-
+---
 ## Getting Started
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/yourusername/parrot-framework.git
-   cd parrot-framework
+   git clone https://github.com/HarshaLLM/parrot.git
+   cd parrot
    ```
-
-2. **Install Dependencies**:
+2. **Install parrot on Machine**:
    ```bash
-   pip install -r requirements.txt
+   pip install -e .
    ```
 
-3. **Running Benchmark**:
+3. **Initializing Ollama (Optional)**:
+
+   Start by [downloading](https://ollama.com/download) Ollama (an open-source project that is a powerful and user-friendly platform for running LLMs on your local machine) if it has not already been installed locally for benchmarking an open-source Large Language Model (LLM).
+
+   Download your choice of LLM supported by [Ollama](https://ollama.com/library) using the command:
+   ```bash
+   ollama run <model-name>
+   ```
+  
+5. **Running Benchmark**:
    Run the benchmark by loading your LLMs and using the provided API.
    ```python
    from parrot import evaluate_model
    evaluate_model(model)
    ```
 
-4. **Dataset Access**:
+6. **Dataset Access**:
    The datasets, PARROT-Millionaire and PARROT-Jeopardy, are included in the repository and can be used to benchmark different LLMs.
 
 ## Usage
 
-PARROT is a versatile framework for benchmarking LLMs in the context of trivia-based question answering. The framework can be adapted to evaluate a wide range of models, from small-scale to state-of-the-art LLMs like GPT-4, Claude-3.5-Sonnet, and more.
+PARROT is a versatile framework for benchmarking LLMs in the context of trivia-based question answering. The framework can be adapted to evaluate various models, from small-scale to state-of-the-art LLMs like GPT-4, Claude-3.5-Sonnet, and more.
 
-To assess your model’s performance:
+To assess your model’s performance using `evaluate_model`:
 
 ```python
-from parrot import MillionaireMetric, JeopardyMetric
+from parrot import evaluate_model #import method from parrot
 
-# Evaluate on the Millionaire dataset
-millionaire_score = MillionaireMetric.evaluate(model)
+model = "llama3.2:1b" #[Required] Name of the Large Language Model that has to be benchmarked. 
+reports = True #[Optional] Generate detailed reports of evaluation. 
+mill_sample_size = 100 #[Optional] Sample size for parrot-millionaire set evaluation.  
+jeop_sample_size = 100 #[Optional] Sample size for parrot-jeopardy set evaluation.
 
-# Evaluate on the Jeopardy dataset
-jeopardy_score = JeopardyMetric.evaluate(model)
+"""
+NOTE: By default, evaluation is carried out for entire test sets (80k+ samples).
+If sample size is not explicitly provided for individual sets.
+"""
 
-# Calculate the overall PARROTscore
-parrot_score = (millionaire_score + jeopardy_score) / 2
+#run benchmark
+results = evaluate_model(
+                            model_name = model,
+                            generate_reports = reports, 
+                            millionaire_sample_size = mill_sample_size, 
+                            jeopardy_sample_size = jeop_sample_size
+)
+
+print(results) #print the results.
+```
+
+Results:
+```json
+{
+"model_name": "llama3.2:1b",
+"parrot_score": 0.435,
+"parrot_millionaire": {
+                        "performance_at_millionaire_level_1": 0.01,
+                        "performance_at_millionaire_level_2": 0.01,
+                        "performance_at_millionaire_level_3": 0.01,
+                        "performance_at_millionaire_level_4": 0.01,
+                        "performance_at_millionaire_level_5": 0.01,
+                        "performance_at_millionaire_level_6": 0.01,
+                        "performance_at_millionaire_level_7": 0.01,
+                        "performance_at_millionaire_level_8": 0.01,
+                        "performance_at_millionaire_level_9": 0.01,
+                        "performance_at_millionaire_level_10": 0.03,
+                        "performance_at_millionaire_level_11": 0.04,
+                        "performance_at_millionaire_level_12": 0.05,
+                        "performance_at_millionaire_level_13": 0.01,
+                        "performance_at_millionaire_level_14": 0.33,
+                        "performance_at_millionaire_level_15": 0.33,
+                        "millionaire_score": 0.23},
+"parrot_jeopardy": {
+                      "performance_at_jeopardy_level_1": 0.04,
+                      "performance_at_jeopardy_level_2": 0.05,
+                      "performance_at_jeopardy_level_3": 0.02,
+                      "performance_at_jeopardy_level_4": 0.02,
+                      "performance_at_jeopardy_level_5": 0.02,
+                      "performance_at_jeopardy_level_6": 0.03,
+                      "performance_at_jeopardy_level_7": 0.01,
+                      "performance_at_jeopardy_level_8": 0.04,
+                      "performance_at_jeopardy_level_9": 0.02,
+                      "performance_at_jeopardy_level_10": 0.02,
+                      "performance_at_jeopardy_level_11": 0.37,
+                      "jeopardy_score": 0.64}
+}
 ```
 
 ## Citing PARROT Framework
