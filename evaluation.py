@@ -422,7 +422,6 @@ class JeopardyMetric:
                 jeopardy_score[performance_at_level] = round(ac_score, 2)
                 score_at_level.append(ac_score)
             logging.info("[JeopardyScore] PARROT-Jeopardy results are now ready!")
-            logging.info("[JeopardyScore]")
             jeopardy_score["jeopardy_score"] = round(sum(score_at_level), 2) 
             
             return jeopardy_score
@@ -430,6 +429,7 @@ class JeopardyMetric:
             logging.error("[JeopardyMetric] The following error occured while attempting to determine the JeopardyMetric score: "+str(e))
 
 
+###Still deciding if we need this class. Feels like we don't.
 class Evaluate(MillionaireMetric, JeopardyMetric):
     """
     Class that inherits from JeopardyMetric and MillionaireMetric to serve as a composite evaluation for determining the PARROT score.

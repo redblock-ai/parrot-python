@@ -3,7 +3,7 @@ from .parrot_ollama import OllamaAdapter
 from .evaluation import MillionaireMetric, JeopardyMetric
 from statistics import mean
 
-def evaluate_model(model_name:str, millionaire_sample_size:int = None, jeopardy_sample_size:int = None, temperature: float= 0) -> float:
+def evaluate_model(model_name:str, generate_reports:bool = False, millionaire_sample_size:int = None, jeopardy_sample_size:int = None, temperature: float= 0) -> dict:
     if millionaire_sample_size is None:
         millionaire = Datasets(dataset = "millionaire")
     else:
@@ -19,9 +19,18 @@ def evaluate_model(model_name:str, millionaire_sample_size:int = None, jeopardy_
     millionaire = ollama_adapter.perform_inference()
     jeopardy = ollama_adapter_j.perform_inference() 
 
-    eval = MillionaireMetric(dataset=millionaire)
-    millionaire_score = eval.compute_millionaire_score()["millionaire_score"]
-    eval = JeopardyMetric(dataset=jeopardy)
-    jeopardy_score = eval.compute_jeopardy_score()["jeopardy_score"]
-    return mean([millionaire_score, jeopardy_score])
+    millionaire_eval = MillionaireMetric(dataset=millionaire)
+    millionaire_report = millionaire_eval.compute_millionaire_score()
+    jeopardy_eval = JeopardyMetric(dataset=jeopardy)
+    jeopardy_report = jeopardy_eval.compute_jeopardy_score()
+
+    result = dict()
+    result["model_name"] = model_name
+    result["parrot_score"] = mean([millionaire_report["millionaire_score"], jeopardy_report["jeopardy_score"]])
+    if generate_reports is False:
+        return result
+    else:
+        result["parrot_millionaire"] = millionaire_report
+        result["parrot_jeopardy"]= jeopardy_report
+        return result
 
