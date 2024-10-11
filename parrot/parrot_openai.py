@@ -1,6 +1,10 @@
 """
 A class which serves as a Adapter for OpenAI GPT model inference over PARROT testset.
 """
+from .datasets.datasets import Datasets
+import logging
+from openai import OpenAI
+import pandas as pd
 
 class OpenAdapterException(Exception):
     """
@@ -55,4 +59,54 @@ class OpenAdapter:
     temperature: float = 0,
     top_k: int = 10,
     top_n: float = 0.2) -> None:
-        pass
+        try:
+            logging.basicConfig( 
+                filename=None,
+                level=logging.INFO,          
+                format='%(asctime)s - %(levelname)s - %(message)s',  #our custom log format
+                datefmt='%Y-%m-%d %H:%M:%S'
+            )
+
+            self.__dataset_handler = dataset #the dataset object is now used to handle that particular instance.
+            if not isinstance(self.__dataset_handler, Datasets) or self.__dataset_handler is None:
+                raise ExceptionGroup.InvalidDataset(message=f"Invalid Dataset Object passed of type: {type(self.__dataset_handler)}")
+            data_frame = self.__dataset_handler.get_data_frame()
+
+            #perform parameter checks.
+            if data_frame is None or not isinstance(data_frame, pd.DataFrame):
+                raise ExceptionGroup.InvalidDataframe("[OpenAdapter] - Invalid parameter 'data_frame' passed for inference.")
+            self.__data = data_frame #init data
+            logging.info("[OpenAdapter] - Data initialized") 
+            
+            #perform checks for parameter 'model_name'
+            if model_name is None:
+                raise ExceptionGroup.ModelNameCannotBeNone(message=f"The model name {model_name}, cannot be of type None.")
+            elif model_name.strip() == "":
+                raise ExceptionGroup.ModelNameCannotBeEmpty()
+            
+            self.__client = OpenAI()
+            self.__model = model_name, 
+            self.__temperature = temperature
+            self.__top_k = top_k
+            self.__top_n = top_n
+            
+            if prompt is None:
+                raise ExceptionGroup.PromptCannotBeNone()
+            elif prompt.strip() == "":
+                raise ExceptionGroup.PromptCannotBeEmpty()
+            self.__prompt = prompt
+            try:
+                if self.__dataset_handler.current_dataset == 'jeopardy':
+                    self.invoke({"question": "how are you?", "category":"Casual Greetings"}) #testing to check if the chain is functional. This should not raise an exception.
+                else:
+                    self.__chain.invoke({"question": "how are you?"}) #testing to check if the chain is functional. This should not raise an exception.
+            except Exception as e:
+                logging.error(str(e))
+                raise Exception(f"Model not found, download it using the CLI command 'ollama run <model-name>'")
+            logging.info("[OpenAdapter] Chain built successfully.")
+            logging.info(f"[OpenAdapter] {model_name} is ready for benchmarking!")
+        except Exception as e:
+            logging.exception(e)
+            raise e
+
+    

@@ -18,7 +18,8 @@ setup(
         "langchain-ollama",
         "qa_metrics",
         "langchain_community",
-        "regex"
+        "regex",
+        "openai"
     ],
     python_requires=">=3.0",
 )
