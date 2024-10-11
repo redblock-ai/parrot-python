@@ -10,6 +10,12 @@ test.ipynb
 key.json
 .DS_Store
 
+samples/
+
+#ignore virtual env for installation and user-side testing.
+parrot_env/
+
+
 # C extensions
 *.so
 

@@ -2,3 +2,4 @@ pytest
 langchain
 langchain_community
 pandas
+qa_metrics

@@ -26,6 +26,9 @@ class Datasets():
     -------
         get_data_frame()
             Loads the data from the specified file and returns it as a Pandas.DataFrame.
+        
+        set_data_frame()
+            Updates the data_frame object in memory.
     """
     
     def __init__(self, dataset: str, sample_size: int = None) -> None:
@@ -55,7 +58,7 @@ class Datasets():
             self.current_dataset = dataset
             self.__cwd = os.getcwd() #get the current working directory.
             
-            self.__FILE__ = self.__cwd +"/datasets/"+ self.current_dataset + ".csv"
+            self.__FILE__ = os.path.join(os.path.dirname(__file__), self.current_dataset + ".csv")
             if sample_size is not None:
                 logging.info(f"[Datasets] Loading dataset with sample_size: {sample_size}.")
                 self.__data = pd.read_csv(self.__FILE__)
@@ -80,3 +83,18 @@ class Datasets():
             pd.DataFrame: The dataset that was loaded, either the full dataset or a sample, depending on the initialization parameters.
         """
         return self.__data
+
+    def set_data_frame(self, data_frame:pd.DataFrame) -> None:
+        """
+        Updates the dataset that has been loaded into memory as a Pandas.DataFrame. This method allows other classes or functions to access the data for further analysis or processing.
+
+        Arguments:
+        ---------
+            data_frame (pd.Dataframe):
+                The new data_frame that has to be updated in memory.
+
+        Returns:
+        --------
+            None.
+        """
+        self.__data = data_frame
