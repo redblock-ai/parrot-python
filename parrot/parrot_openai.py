@@ -58,6 +58,7 @@ class OpenAdapter:
     prompt: str = None,
     temperature: float = 0,
     top_k: int = 10,
+    api_key: str = None,
     top_n: float = 0.2) -> None:
         try:
             logging.basicConfig( 
@@ -95,11 +96,13 @@ class OpenAdapter:
             elif prompt.strip() == "":
                 raise ExceptionGroup.PromptCannotBeEmpty()
             self.__prompt = prompt
+
+            self.__key = api_key
             try:
                 if self.__dataset_handler.current_dataset == 'jeopardy':
-                    self.invoke({"question": "how are you?", "category":"Casual Greetings"}) #testing to check if the chain is functional. This should not raise an exception.
+                    self.__invoke({"question": "how are you?", "category":"Casual Greetings"}) #testing to check if the chain is functional. This should not raise an exception.
                 else:
-                    self.__chain.invoke({"question": "how are you?"}) #testing to check if the chain is functional. This should not raise an exception.
+                    self.__invoke({"question": "how are you?"}) #testing to check if the chain is functional. This should not raise an exception.
             except Exception as e:
                 logging.error(str(e))
                 raise Exception(f"Model not found, download it using the CLI command 'ollama run <model-name>'")
@@ -108,5 +111,23 @@ class OpenAdapter:
         except Exception as e:
             logging.exception(e)
             raise e
-
     
+    def __invoke(self, question: str) -> str:
+        """ 
+        This private method calls the OpenAI endpoint on the key provided for chat.completion. By default max_tokens are set to limit the output tokens of the model. 
+        """
+        try:
+            self.__messages= [
+                {
+                    "role": "user",
+                    "content": question
+                }
+            ]
+            self.__response = self.__client.chat.completions.create(
+                model = self.__model,
+                messages = self.__messages,
+                max_tokens=15
+            )
+            return self.__response.choices[0].message.content
+        except Exception as e:
+            pass
