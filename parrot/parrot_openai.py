@@ -48,6 +48,11 @@ class ExceptionGroup:
             self.message = message
             super().__init__(self.message)
 
+    class ExceptionFromOpenApi(OpenAdapterException):
+        def __init__(self, message="Something went wrong, API call failed."):
+            self.message = message
+            super().__init__(self.message)
+
 class OpenAdapter:
     """
     A custom-class, that servers as a adapter for model inference over PARROT-datasets using OpenAI endpoint on top of langchain.
@@ -117,17 +122,17 @@ class OpenAdapter:
         This private method calls the OpenAI endpoint on the key provided for chat.completion. By default max_tokens are set to limit the output tokens of the model. 
         """
         try:
-            self.__messages= [
-                {
-                    "role": "user",
-                    "content": question
-                }
-            ]
-            self.__response = self.__client.chat.completions.create(
-                model = self.__model,
-                messages = self.__messages,
-                max_tokens=15
-            )
-            return self.__response.choices[0].message.content
+            messages= [ {"role": "user","content": question} ] #create message object (list of messages <dict>).
+
+            try:
+                response = self.__client.chat.completions.create(
+                    model = self.__model,
+                    messages= messages,
+                    max_tokens=15 #defined max_tokens to be 15.
+                )
+            except ExceptionGroup.ExceptionFromOpenApi() as e:
+                logging.error("[OpenAdapter] The following error occured while making an API call: "+str(e))
+                raise e
+            return response.choices[0].message.content
         except Exception as e:
             pass
