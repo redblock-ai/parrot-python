@@ -351,13 +351,14 @@ def test_open_adapter_millionaire_test_success():
     dataset = Datasets(dataset= "millionaire", sample_size=sample_size)
     model_name = "gpt_4o-mini"
     prompt = """Answer following question directly without any additional text, \nQuestion: """
-    ollama_handler = OpenAdapter(
+    open_handler = OpenAdapter(
             dataset = dataset,  
             model_name=model_name, #Model isn't available locally.
-            prompt=prompt
+            prompt=prompt,
+            api_key=OPEN_AI_KEY
         )
 
-    answers = ollama_handler.process_questions()
+    answers = open_handler.process_questions()
 
     assert answers is not None #response must not be None.
     assert isinstance(answers, list) #check if response is list of answers.
@@ -373,13 +374,14 @@ def test_open_adapter_jeopardy_test_success():
     dataset = Datasets(dataset= "jeopardy", sample_size=sample_size)
     model_name = "gpt-4o-mini"
     prompt = """Answer following question directly without any additional text, \n Question:"""
-    ollama_handler = OllamaAdapter(
+    open_handler = OllamaAdapter(
             dataset = dataset,  
             model_name=model_name, #Model isn't available locally.
-            prompt=prompt
+            prompt=prompt,
+            api_key=OPEN_AI_KEY
         )
 
-    answers = ollama_handler.process_questions()
+    answers = open_handler.process_questions()
 
     assert answers is not None #response must not be None.
     assert isinstance(answers, list) #check if response is list of answers.
