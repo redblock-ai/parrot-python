@@ -374,9 +374,9 @@ def test_open_adapter_jeopardy_test_success():
     dataset = Datasets(dataset= "jeopardy", sample_size=sample_size)
     model_name = "gpt-4o-mini"
     prompt = """Answer following question directly without any additional text, \n Question:"""
-    open_handler = OllamaAdapter(
+    open_handler = OpenAdapter(
             dataset = dataset,  
-            model_name=model_name, #Model isn't available locally.
+            model_name=model_name,
             prompt=prompt,
             api_key=OPEN_AI_KEY
         )
