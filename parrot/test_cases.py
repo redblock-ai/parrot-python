@@ -341,3 +341,47 @@ def test_valid_credentials_passed():
                 api_key= OPEN_AI_KEY
             ) #Valid API key passed, this should not raise an exception
 
+@pytest.mark.OpenAdapter        
+@pytest.mark.OpenAdapterMillionaireTestSuccess
+def test_open_adapter_millionaire_test_success():
+    """
+    Test if OpenAdapter is able to generate candidate answers for Millionaire set.
+    """
+    sample_size = 100
+    dataset = Datasets(dataset= "millionaire", sample_size=sample_size)
+    model_name = "gpt_4o-mini"
+    prompt = """Answer following question directly without any additional text, \nQuestion: """
+    ollama_handler = OpenAdapter(
+            dataset = dataset,  
+            model_name=model_name, #Model isn't available locally.
+            prompt=prompt
+        )
+
+    answers = ollama_handler.process_questions()
+
+    assert answers is not None #response must not be None.
+    assert isinstance(answers, list) #check if response is list of answers.
+    assert len(dataset.get_data_frame()) == len(answers) #No empty responses.
+
+@pytest.mark.OpenAdapter
+@pytest.mark.OpenAdapterJeopardyTestSuccess
+def test_open_adapter_jeopardy_test_success():
+    """
+    Test if OllamaAdapter is able to generate candidate answers for Jeopardy set.
+    """
+    sample_size = 100
+    dataset = Datasets(dataset= "jeopardy", sample_size=sample_size)
+    model_name = "gpt-4o-mini"
+    prompt = """Answer following question directly without any additional text, \n Question:"""
+    ollama_handler = OllamaAdapter(
+            dataset = dataset,  
+            model_name=model_name, #Model isn't available locally.
+            prompt=prompt
+        )
+
+    answers = ollama_handler.process_questions()
+
+    assert answers is not None #response must not be None.
+    assert isinstance(answers, list) #check if response is list of answers.
+    assert len(dataset.get_data_frame()) == len(answers) #No empty responses.
+
