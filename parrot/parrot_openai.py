@@ -96,7 +96,7 @@ class OpenAdapter:
             elif model_name.strip() == "":
                 raise ExceptionGroup.ModelNameCannotBeEmpty()
             
-            self.__client = OpenAI()
+            
             self.__model = model_name, 
             self.__temperature = temperature
             self.__top_k = top_k
@@ -113,9 +113,12 @@ class OpenAdapter:
             elif api_key is None or api_key.strip() == "":
                 raise ExceptionGroup.InvalidCredentialsPassed(message="Authentication failed: <api_key> cannot be empty.")
             
+
                 
             os.environ["OPENAI_API_KEY"] = api_key
             logging.info("[OpenAdapter] API_KEY initialized as an OS environment variable.")
+
+            self.__client = OpenAI()
             try:
                 self.__invoke(question="Hey how are you?") #handshake with API, this must not raise an exception.
             except Exception as e:
