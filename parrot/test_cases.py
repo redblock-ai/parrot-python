@@ -10,6 +10,14 @@ from .evaluation import MillionaireMetric, JeopardyMetric
 from qa_metrics.pedant import PEDANT
 import pandas as pd
 from .parrot_openai import OpenAdapter
+import json
+
+
+with open('Key.json', 'r') as file:
+    data = json.load(file)
+
+# Print the data
+OPEN_AI_KEY = data["OpenAI_key"]
 
 #Datasets TESTCASES:
 @pytest.mark.Datasets
@@ -315,4 +323,21 @@ def test_api_key_not_found():
                 model_name=model_name, 
                 prompt=prompt
             ) #no api_key was passed, should raise an excetion: OpenAdapterException.InvalidCredentials().
+
+@pytest.mark.OpenAdapter
+@pytest.mark.OpenAdapterInitSuccess
+def test_valid_credentials_passed():
+    """
+    Test if the user has passed an api_key, if not should raise an exception.
+    """
+    obj = Datasets(dataset = "millionaire", sample_size=100)
+    model_name = "gpt-4o-mini"
+    prompt = """Answer following question directly without any additional text \nQuestion:"""
+   
+    open_handler = OpenAdapter(
+                dataset = obj,  
+                model_name=model_name, 
+                prompt=prompt,
+                api_key= OPEN_AI_KEY
+            ) #Valid API key passed, this should not raise an exception
 

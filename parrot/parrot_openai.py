@@ -119,12 +119,7 @@ class OpenAdapter:
             logging.info("[OpenAdapter] API_KEY initialized as an OS environment variable.")
 
             self.__client = OpenAI()
-            try:
-                self.__invoke(question="Hey how are you?") #handshake with API, this must not raise an exception.
-            except Exception as e:
-                logging.error(str(e))
-                raise Exception(f"Model not found, download it using the CLI command 'ollama run <model-name>'")
-            logging.info("[OpenAdapter] Chain built successfully.")
+            self.__invoke(question="Hey how are you?") #handshake with API, this must not raise an exception.
             logging.info(f"[OpenAdapter] {model_name} is ready for benchmarking!")
         except Exception as e:
             logging.exception(e)
@@ -137,13 +132,16 @@ class OpenAdapter:
         try:
             question = self.__prompt + question #append system prompt to the question being asked.
             messages= [ {"role": "user","content": question} ] #create message object (list of messages <dict>).
-            response = self.__client.chat.completions.create(
-                model = self.__model,
-                messages= messages,
-                max_tokens=20 #defined max_tokens to be 15.
-            )  
-            return response.choices[0].message.content
-        except ExceptionGroup.ExceptionFromOpenApi() as e:
+            try:
+                response = self.__client.chat.completions.create(
+                    model = self.__model,
+                    messages= messages,
+                    max_tokens=20 #defined max_tokens to be 15.
+                )  
+                return response.choices[0].message.content
+            except Exception as e:
+                raise ExceptionGroup.ExceptionFromOpenApi(message=str(e``))
+        except ExceptionGroup.ExceptionFromOpenApi as e:
             logging.error("[OpenAdapter] The following error occured while making an API call: "+str(e))
             raise e
             
