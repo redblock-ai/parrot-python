@@ -9,7 +9,7 @@ from .parrot_ollama import OllamaAdapter
 from .evaluation import MillionaireMetric, JeopardyMetric
 from qa_metrics.pedant import PEDANT
 import pandas as pd
-
+from .parrot_openai import OpenAdapter
 
 #Datasets TESTCASES:
 @pytest.mark.Datasets
@@ -297,3 +297,22 @@ def test_jeopardy_metric_score_generation():
     assert report.get("jeopardy_score", None) is not None #the report MUST contain the millionaire score!
     assert isinstance(report["jeopardy_score"], float) and report["jeopardy_score"]> 0.00
     assert len(report.keys()) > 1 #report should also contain individual performance scores per level!
+
+
+#Testcases for OpenAI adapter!
+@pytest.mark.OpenAdapter
+@pytest.mark.OpenAdapterInitFailure
+def test_api_key_not_found():
+    """
+    Test if the user has passed an api_key, if not should raise an exception.
+    """
+    obj = Datasets(dataset = "millionaire", sample_size=100)
+    model_name = "gpt-4o-mini"
+    prompt = """Answer following question directly without any additional text \nQuestion:"""
+    with pytest.raises(Exception):
+        open_handler = OpenAdapter(
+                dataset = obj,  
+                model_name=model_name, 
+                prompt=prompt
+            ) #no api_key was passed, should raise an excetion: OpenAdapterException.InvalidCredentials().
+
