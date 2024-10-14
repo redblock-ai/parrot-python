@@ -4,13 +4,14 @@ A class which serves as a Adapter for OpenAI GPT model inference over PARROT tes
 from .datasets.datasets import Datasets
 import logging
 from openai import OpenAI
+from openai.error import RateLimitError
 import pandas as pd
 import time 
 import os
 
 class OpenAdapterException(Exception):
     """
-    Base class for Custom Exceptions within Ollama Adapter.
+    Base class for Custom Exceptions within Open Adapter.
     """
 class ExceptionGroup:
     class InvalidDataset(OpenAdapterException):
@@ -67,7 +68,7 @@ class ExceptionGroup:
 
 class OpenAdapter:
     """
-    A custom-class, that servers as a adapter for model inference over PARROT-datasets using OpenAI endpoint on top of langchain.
+    A custom-class, that servers as a adapter for model inference over PARROT-datasets using OpenAI endpoint.
     """
     def __init__(self, 
     dataset:Datasets = None,
@@ -147,7 +148,7 @@ class OpenAdapter:
                         max_tokens = 20
                     )
                 return response.choices[0].message.content
-            except openai.RateLimitError as e:
+            except RateLimitError as e:
                 raise ExceptionGroup.RateLimitError(message=("Rate limit reached for the minute"))
             except Exception as e:
                 raise ExceptionGroup.ExceptionFromOpenApi(message=str(e))
