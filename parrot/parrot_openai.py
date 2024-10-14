@@ -5,6 +5,7 @@ from .datasets.datasets import Datasets
 import logging
 from openai import OpenAI
 import pandas as pd
+import os
 
 class OpenAdapterException(Exception):
     """
@@ -50,6 +51,11 @@ class ExceptionGroup:
 
     class ExceptionFromOpenApi(OpenAdapterException):
         def __init__(self, message="Something went wrong, API call failed."):
+            self.message = message
+            super().__init__(self.message)
+
+    class InvalidCredentialsPassed(OpenAdapterException):
+        def __init__(self, message="Please check the API credentials passed!"):
             self.message = message
             super().__init__(self.message)
 
@@ -102,12 +108,16 @@ class OpenAdapter:
                 raise ExceptionGroup.PromptCannotBeEmpty()
             self.__prompt = prompt
 
-            self.__key = api_key
+            if not isinstance(api_key, str):
+                raise ExceptionGroup.InvalidCredentialsPassed(message= "<api_key> must of be of type 'str', received credentials of type: "+str(type(api_key)))
+            elif api_key is None or api_key.strip() == "":
+                raise ExceptionGroup.InvalidCredentialsPassed(message="Authentication failed: <api_key> cannot be empty.")
+            
+                
+            os.environ["OPENAI_API_KEY"] = api_key
+            logging.info("[OpenAdapter] API_KEY initialized as an OS environment variable.")
             try:
-                if self.__dataset_handler.current_dataset == 'jeopardy':
-                    self.__invoke({"question": "how are you?", "category":"Casual Greetings"}) #testing to check if the chain is functional. This should not raise an exception.
-                else:
-                    self.__invoke({"question": "how are you?"}) #testing to check if the chain is functional. This should not raise an exception.
+                self.__invoke(question="Hey how are you?") #handshake with API, this must not raise an exception.
             except Exception as e:
                 logging.error(str(e))
                 raise Exception(f"Model not found, download it using the CLI command 'ollama run <model-name>'")
@@ -122,17 +132,21 @@ class OpenAdapter:
         This private method calls the OpenAI endpoint on the key provided for chat.completion. By default max_tokens are set to limit the output tokens of the model. 
         """
         try:
+            question = self.__prompt + question #append system prompt to the question being asked.
             messages= [ {"role": "user","content": question} ] #create message object (list of messages <dict>).
-
-            try:
-                response = self.__client.chat.completions.create(
-                    model = self.__model,
-                    messages= messages,
-                    max_tokens=15 #defined max_tokens to be 15.
-                )
-            except ExceptionGroup.ExceptionFromOpenApi() as e:
-                logging.error("[OpenAdapter] The following error occured while making an API call: "+str(e))
-                raise e
+            response = self.__client.chat.completions.create(
+                model = self.__model,
+                messages= messages,
+                max_tokens=20 #defined max_tokens to be 15.
+            )  
             return response.choices[0].message.content
-        except Exception as e:
+        except ExceptionGroup.ExceptionFromOpenApi() as e:
+            logging.error("[OpenAdapter] The following error occured while making an API call: "+str(e))
+            raise e
+            
+
+    def perform_inference(self, df: pd.DataFrame) -> pd.DataFrame:
+        try:
+            pass
+        except:
             pass

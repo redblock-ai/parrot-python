@@ -2,6 +2,7 @@ from .datasets.datasets import Datasets
 from .parrot_ollama import OllamaAdapter
 from .evaluation import MillionaireMetric, JeopardyMetric
 from statistics import mean
+from .parrot_openai import OpenAdapter
 
 def evaluate_model(model_name:str, generate_reports:bool = False, millionaire_sample_size:int = None, jeopardy_sample_size:int = None, temperature: float= 0) -> dict:
     if millionaire_sample_size is None:
