@@ -9,7 +9,15 @@ from .parrot_ollama import OllamaAdapter
 from .evaluation import MillionaireMetric, JeopardyMetric
 from qa_metrics.pedant import PEDANT
 import pandas as pd
+from .parrot_openai import OpenAdapter
+import json
 
+
+with open('Key.json', 'r') as file:
+    data = json.load(file)
+
+# Print the data
+OPEN_AI_KEY = data["OpenAI_key"]
 
 #Datasets TESTCASES:
 @pytest.mark.Datasets
@@ -297,3 +305,85 @@ def test_jeopardy_metric_score_generation():
     assert report.get("jeopardy_score", None) is not None #the report MUST contain the millionaire score!
     assert isinstance(report["jeopardy_score"], float) and report["jeopardy_score"]> 0.00
     assert len(report.keys()) > 1 #report should also contain individual performance scores per level!
+
+
+#Testcases for OpenAI adapter!
+@pytest.mark.OpenAdapter
+@pytest.mark.OpenAdapterInitFailure
+def test_api_key_not_found():
+    """
+    Test if the user has passed an api_key, if not should raise an exception.
+    """
+    obj = Datasets(dataset = "millionaire", sample_size=100)
+    model_name = "gpt-4o-mini"
+    prompt = """Answer following question directly without any additional text \nQuestion:"""
+    with pytest.raises(Exception):
+        open_handler = OpenAdapter(
+                dataset = obj,  
+                model_name=model_name, 
+                prompt=prompt
+            ) #no api_key was passed, should raise an excetion: OpenAdapterException.InvalidCredentials().
+
+@pytest.mark.OpenAdapter
+@pytest.mark.OpenAdapterInitSuccess
+def test_valid_credentials_passed():
+    """
+    Test if the user has passed an api_key, if not should raise an exception.
+    """
+    obj = Datasets(dataset = "millionaire", sample_size=100)
+    model_name = "gpt-4o-mini"
+    prompt = """Answer following question directly without any additional text \nQuestion:"""
+   
+    open_handler = OpenAdapter(
+                dataset = obj,  
+                model_name=model_name, 
+                prompt=prompt,
+                api_key= OPEN_AI_KEY
+            ) #Valid API key passed, this should not raise an exception
+
+@pytest.mark.OpenAdapter        
+@pytest.mark.OpenAdapterMillionaireTestSuccess
+def test_open_adapter_millionaire_test_success():
+    """
+    Test if OpenAdapter is able to generate candidate answers for Millionaire set.
+    """
+    sample_size = 100
+    dataset = Datasets(dataset= "millionaire", sample_size=sample_size)
+    model_name = "gpt_4o-mini"
+    prompt = """Answer following question directly without any additional text, \nQuestion: """
+    open_handler = OpenAdapter(
+            dataset = dataset,  
+            model_name=model_name, #Model isn't available locally.
+            prompt=prompt,
+            api_key=OPEN_AI_KEY
+        )
+
+    answers = open_handler.process_questions()
+
+    assert answers is not None #response must not be None.
+    assert isinstance(answers, list) #check if response is list of answers.
+    assert len(dataset.get_data_frame()) == len(answers) #No empty responses.
+
+@pytest.mark.OpenAdapter
+@pytest.mark.OpenAdapterJeopardyTestSuccess
+def test_open_adapter_jeopardy_test_success():
+    """
+    Test if OllamaAdapter is able to generate candidate answers for Jeopardy set.
+    """
+    sample_size = 100
+    dataset = Datasets(dataset= "jeopardy", sample_size=sample_size)
+    model_name = "gpt-4o-mini"
+    prompt = """Answer following question directly without any additional text, \n Question:"""
+    open_handler = OpenAdapter(
+            dataset = dataset,  
+            model_name=model_name,
+            prompt=prompt,
+            api_key=OPEN_AI_KEY
+        )
+
+    answers = open_handler.process_questions()
+
+    assert answers is not None #response must not be None.
+    assert isinstance(answers, list) #check if response is list of answers.
+    assert len(dataset.get_data_frame()) == len(answers) #No empty responses.
+

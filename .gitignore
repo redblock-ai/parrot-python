@@ -12,6 +12,8 @@ key.json
 
 samples/
 
+parrot_google.py
+
 #ignore virtual env for installation and user-side testing.
 parrot_env/
 
